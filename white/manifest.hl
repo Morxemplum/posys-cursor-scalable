@@ -1,0 +1,4 @@
+name = Posys-Cursor-Scalable
+description = Cursor theme from Michiel de Boer (Posy), converted to SVGs and ported to Hyprcursor
+version = 0.1
+cursors_directory = hyprcursors
