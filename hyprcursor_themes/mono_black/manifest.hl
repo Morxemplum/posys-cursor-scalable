@@ -1,4 +1,4 @@
 name = Posys-Cursor-Scalable-Mono-Black
 description = Mono black variant of the cursor theme from Michiel de Boer (Posy), converted to SVGs and ported to Hyprcursor.
-version = 0.1
+version = 1.0
 cursors_directory = hyprcursors
