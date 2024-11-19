@@ -1,0 +1,10 @@
+resize_algorithm = none
+hotspot_x = 0.296
+hotspot_y = 0
+
+define_size = 0, hand.svg
+
+define_override = pointer
+define_override = hand1
+define_override = hand2
+define_override = pointing_hand

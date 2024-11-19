@@ -1,0 +1,4 @@
+name = Posys-Cursor-Scalable-Mono
+description = Mono variant of the cursor theme from Michiel de Boer (Posy), converted to SVGs and ported to Hyprcursor
+version = 0.1
+cursors_directory = hyprcursors
