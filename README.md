@@ -1,4 +1,6 @@
 # Posy's Cursor (Scalable)
+![Scale Showcase](https://github.com/user-attachments/assets/ceb1c365-c883-4732-bd62-94110213d688)
+
 This is a cursor theme that is based on [Posy's cursor](https://www.michieldb.nl/other/cursors/) by Michiel de Boer. Given that Michiel released a few SVGs of his cursor set, I used his SVGs (along with remaking some designs myself) and recreate his theme, entirely out of SVG. No more rasters.
 
 ## Why did I do this?
