@@ -1,0 +1,9 @@
+resize_algorithm = none
+hotspot_x = 0
+hotspot_y = 0
+
+define_size = 0, background.svg
+
+define_override = half_busy
+define_override = left_ptr_watch
+define_override = progress
