@@ -1,19 +1,26 @@
 # Posy's Cursor (Scalable)
-This is a cursor theme that is based on [Posy's cursor](https://www.michieldb.nl/other/cursors/) by Michiel de Boer. Given that Michiel released a few SVGs of his cursor set, I decided to go forward and use his SVGs (along with remaking some of the designs myself) and recreate his theme, entirely out of SVG.
+This is a cursor theme that is based on [Posy's cursor](https://www.michieldb.nl/other/cursors/) by Michiel de Boer. Given that Michiel released a few SVGs of his cursor set, I used his SVGs (along with remaking some designs myself) and recreate his theme, entirely out of SVG. No more rasters.
 
 ## Why did I do this?
-The main purpose behind this was to create a [hyprcursor](https://wiki.hyprland.org/Hypr-Ecosystem/hyprcursor/) theme, a new cursor utility that is meant to modernize the ancient backbone behind cursor themes to address many shortcomings, alongside introducing nifty features, such as SVG Support!
+The main purpose behind this was to create a [hyprcursor](https://wiki.hyprland.org/Hypr-Ecosystem/hyprcursor/) theme, a new cursor utility that modernizes the ancient backbone behind cursors to address it's aging feature set, alongside introducing nifty features, such as SVG Support!
 
 Seeing as nobody has managed to do this so far, I decided to go out of my way to make the theme myself because of how much I love this cursor theme.
 
 ## How to use
-The source SVGs behind the sprites are made using [Inkscape](https://inkscape.org/), so it is recommended you use this program if you want to tackle the source SVGs.
+The source SVGs behind the cursors are made using [Inkscape](https://inkscape.org/), so it is recommended you use this program if you want to tackle the source SVGs.
 
-Alongside the source SVGs are preconfigured hyprcursor themes. I based the themes around how Posy distributes them on his websites (minus some inconsistencies). All you have to do is run `hyprcursor-util` to build the themes, then just simply put the theme in your `.icons` or `~/local/share/icons` folder and update your configuration file to utilize the new theme
-
+Alongside the source SVGs are preconfigured hyprcursor themes. I based the themes around how Posy distributes them on his website (minus some inconsistencies). 
+### Procedures for Hyprland
+1. Use `hyprcursor-util` to build the theme or download a prebuilt tarball from the releases. If using the tarball, make sure to extract the "theme_" folder.
+2. Move the theme folder into your `.icons` or `~/.local/share/icons` folder.
+3. Update your `hyprland.conf` file with the following lines to apply the theme (changing the theme and size to your liking)
+```conf
+env = HYPRCURSOR_THEME,Posys-Cursor-Scalable
+env = HYPRCURSOR_SIZE,24
+```
 ## To Do List
-As of writing this, this is a bare bones publish of the theme and more work needs to be done.
-- Generate additional themes (Black, Mono, Black Mono)
+A lot of the basics are complete, but there's still work that needs to be done
 - Animate the watch (Rainbow Hourglass) sprite
+  - (I have a setup that will make this programmable)
 - Create an install script to simplify the Hyprcursor building process
 - Add additional cursors?
