@@ -1,9 +1,12 @@
 import math
 
-DURATION = 2500 # In milliseconds
-FRAME_RATE = 30 # Higher will lead to smoother appearance, at cost of efficiency and file size
+# In milliseconds
+DURATION = 2500 # 715 for Mono (2/7 the duration)
+# Higher will lead to smoother appearance, at cost of efficiency and file size
+FRAME_RATE = 30
 REVERSE = True # Posy's animation goes in the opposite direction of the gradient
-CURSOR_NAME = "background"
+CURSOR_NAME = "watch"
+MONO = False
 
 colors = [ "ff0030", # red
             "fea002", # orange
@@ -13,12 +16,19 @@ colors = [ "ff0030", # red
             "0066ff", # blue
             "c000ff" # purple 
         ]
+shades = [ "ffffff",
+            "000000"
+]
 
 # Positions are in denominations of 7
 def generate_positions():
     stops = []
-    for i in range(14):
-        stops.append([colors[math.floor(i/2)], math.ceil(i/2)/7])
+    if MONO:
+        for i in range(14):
+            stops.append([shades[math.floor(i/2) % 2], math.ceil(i/2)/7])
+    else:
+        for i in range(14):
+            stops.append([colors[math.floor(i/2)], math.ceil(i/2)/7])
     return stops
 
 def generate_xml_stop(stop):
@@ -66,13 +76,32 @@ def pop_stops(stops):
     if (current <= previous):
         stops.insert(0, stops.pop())
 
+# Mono is a special case where the ends are the same color. We need to reapply the shades so there's no repeat
+def reapply_shades(stops):
+    count = 0
+    flipped = False
+    for i in range(len(stops) - 2, -1, -1):
+        if (stops[i+1][0] == stops[i][0]):
+            count += 1
+        else:
+            count = 0
+        if (count > 1 or flipped):
+            # Use XOR to flip the position
+            stops[i][0] = shades[shades.index(stops[i][0]) ^ 1]
+            flipped = True
+
 def generate_frames(stops, total_frames, pre, post):
     for i in range(1, total_frames):
         print("Generating frame", i)
-        transformed = transform_stops(stops, i/total_frames)
+        t_amount = i/total_frames
+        if MONO:
+            t_amount *= (2/7)
+        transformed = transform_stops(stops, t_amount)
         for stop in transformed:
             stop[1] = round(stop[1], 3)
         pop_stops(transformed)
+        if MONO:
+            reapply_shades(transformed)
         with open(CURSOR_NAME + "-" + str(i) + ".svg", "w") as f:
             for line in pre:
                 f.write(line)
