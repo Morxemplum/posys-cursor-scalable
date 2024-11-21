@@ -1,2 +1,6 @@
 theme_*
+src/animated/watch-*
+src/animated/background-*
+src/animated/meta.hl
 *.tar.gz
+result

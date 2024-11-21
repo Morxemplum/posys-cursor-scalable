@@ -7,7 +7,7 @@
    width="75"
    height="75"
    viewBox="0 0 75 75"
-   sodipodi:docname="posys-cursor-loading.svg"
+   sodipodi:docname="posys-cursor-watch (efficient).svg"
    inkscape:version="1.3.2 (091e20ef0f, 2023-11-25)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -16,6 +16,66 @@
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs1">
+    <linearGradient
+       id="linearGradient16"
+       inkscape:collect="always">
+      <stop
+         style="stop-color:#ff0030;stop-opacity:1;"
+         offset="0"
+         id="stop16" />
+      <stop
+         style="stop-color:#ff0030;stop-opacity:1;"
+         offset="0.14"
+         id="stop18" />
+      <stop
+         style="stop-color:#fea002;stop-opacity:1;"
+         offset="0.14"
+         id="stop17" />
+      <stop
+         style="stop-color:#fea002;stop-opacity:1;"
+         offset="0.28"
+         id="stop20" />
+      <stop
+         style="stop-color:#fffc00;stop-opacity:1;"
+         offset="0.28"
+         id="stop19" />
+      <stop
+         style="stop-color:#fffc00;stop-opacity:1;"
+         offset="0.43000001"
+         id="stop22" />
+      <stop
+         style="stop-color:#46f609;stop-opacity:1;"
+         offset="0.43000001"
+         id="stop21" />
+      <stop
+         style="stop-color:#46f609;stop-opacity:1;"
+         offset="0.56999999"
+         id="stop24" />
+      <stop
+         style="stop-color:#00baff;stop-opacity:1;"
+         offset="0.56999999"
+         id="stop23" />
+      <stop
+         style="stop-color:#00baff;stop-opacity:1;"
+         offset="0.70999998"
+         id="stop26" />
+      <stop
+         style="stop-color:#0066ff;stop-opacity:1;"
+         offset="0.70999998"
+         id="stop25" />
+      <stop
+         style="stop-color:#0066ff;stop-opacity:1;"
+         offset="0.86000001"
+         id="stop28" />
+      <stop
+         style="stop-color:#c000ff;stop-opacity:1;"
+         offset="0.86000001"
+         id="stop27" />
+      <stop
+         style="stop-color:#c000ff;stop-opacity:1;"
+         offset="1"
+         id="stop29" />
+    </linearGradient>
     <clipPath
        clipPathUnits="userSpaceOnUse"
        id="clipPath2">
@@ -448,6 +508,15 @@
          transform="translate(-215.19681,-163.1968)"
          id="path33-3" />
     </clipPath>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient16"
+       id="linearGradient17"
+       x1="-10.196605"
+       y1="29.80319"
+       x2="-48.197155"
+       y2="-9.1968098"
+       gradientUnits="userSpaceOnUse" />
   </defs>
   <sodipodi:namedview
      id="namedview1"
@@ -458,15 +527,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="7.9866667"
-     inkscape:cx="56.907346"
-     inkscape:cy="44.449082"
-     inkscape:window-width="1627"
-     inkscape:window-height="1396"
+     inkscape:zoom="3.9933334"
+     inkscape:cx="37.813022"
+     inkscape:cy="55.467445"
+     inkscape:window-width="1251"
+     inkscape:window-height="1359"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer-MC0">
+     inkscape:current-layer="svg1">
     <inkscape:page
        x="0"
        y="0"
@@ -475,55 +544,16 @@
        width="75"
        height="75"
        margin="112.708 146.66667 44.262665 157.33333"
-       bleed="0" />
+       bleed="0"
+       inkscape:export-filename="../../../Pictures/posys-cursor-watch (efficient).svg"
+       inkscape:export-xdpi="163.84"
+       inkscape:export-ydpi="163.84" />
   </sodipodi:namedview>
-  <g
-     id="layer-MC0"
-     inkscape:groupmode="layer"
-     inkscape:label="Loading"
-     style="display:inline"
-     transform="matrix(1.4423079,0,0,1.4423075,-386.53784,-186.53844)">
-    <path
-       id="path20"
-       d="m 0,0 -44,44 10.606,10.606 44,-44 z"
-       style="display:inline;fill:#ff0030;fill-opacity:1;fill-rule:nonzero;stroke:none"
-       transform="matrix(1.3333333,0,0,-1.3333333,332.2624,169.07093)"
-       clip-path="url(#clipPath21-1)" />
-    <path
-       id="path22"
-       d="m 0,0 -44.5,44.5 10.606,10.606 44.5,-44.5 z"
-       style="display:inline;fill:#fea002;fill-opacity:1;fill-rule:nonzero;stroke:none"
-       transform="matrix(1.3333333,0,0,-1.3333333,324.2624,177.07093)"
-       clip-path="url(#clipPath23-4)" />
-    <path
-       id="path24"
-       d="m 0,0 -45,45 10.606,10.606 45,-45 z"
-       style="display:inline;fill:#fffc00;fill-opacity:1;fill-rule:nonzero;stroke:none"
-       transform="matrix(1.3333333,0,0,-1.3333333,317.59573,185.07093)"
-       clip-path="url(#clipPath25-8)" />
-    <path
-       id="path26"
-       d="m 0,0 -46,46 10.606,10.606 46,-46 z"
-       style="display:inline;fill:#46f609;fill-opacity:1;fill-rule:nonzero;stroke:none"
-       transform="matrix(1.3333333,0,0,-1.3333333,310.92907,193.07093)"
-       clip-path="url(#clipPath27-5)" />
-    <path
-       id="path28"
-       d="m 0,0 -45.5,45.5 10.606,10.606 45.5,-45.5 z"
-       style="display:inline;fill:#00baff;fill-opacity:1;fill-rule:nonzero;stroke:none"
-       transform="matrix(1.3333333,0,0,-1.3333333,302.2624,200.40427)"
-       clip-path="url(#clipPath29-3)" />
-    <path
-       id="path30"
-       d="m 0,0 -45,45 10.606,10.606 45,-45 z"
-       style="display:inline;fill:#0066ff;fill-opacity:1;fill-rule:nonzero;stroke:none"
-       transform="matrix(1.3333333,0,0,-1.3333333,294.2624,207.07093)"
-       clip-path="url(#clipPath31-1)" />
-    <path
-       id="path32"
-       d="m 0,0 -46,46 10.606,10.606 46,-46 z"
-       style="fill:#c000ff;fill-opacity:1;fill-rule:nonzero;stroke:none"
-       transform="matrix(1.3333333,0,0,-1.3333333,286.92907,214.40427)"
-       clip-path="url(#clipPath33-6)" />
-  </g>
+  <path
+     id="path1"
+     clip-path="url(#clipPath21-1)"
+     style="display:inline;opacity:1;fill:url(#linearGradient17);fill-opacity:1;fill-rule:nonzero;stroke:none"
+     d="M -33.394421,54.605779 -67.999807,22.000148 -33.999733,-34.000407 10.605496,10.60585 Z"
+     transform="matrix(1.9230772,0,0,-1.9230766,92.686844,57.31383)"
+     sodipodi:nodetypes="ccccc" />
 </svg>
