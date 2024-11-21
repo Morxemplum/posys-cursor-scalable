@@ -5,4 +5,6 @@ hotspot_y = 0.5
 define_size = 0, size_NwSe.svg
 
 define_override = nwse-resize
+define_override = nw-resize
+define_override = se-resize
 define_override = size_fdiag

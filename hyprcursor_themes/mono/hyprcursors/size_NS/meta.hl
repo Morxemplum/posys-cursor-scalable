@@ -5,8 +5,8 @@ hotspot_y = 0.5
 define_size = 0, size_NS.svg
 
 define_override = split_h
-define_override = e-resize
-define_override = w-resize
+define_override = n-resize
+define_override = s-resize
 define_override = h_double_arrow
 define_override = sb_h_double_arrow
 define_override = size_ver
