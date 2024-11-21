@@ -42,6 +42,10 @@ function build_hyprcursor() {
         exit 1
     fi
     hyprcursor-util --create $THEMES_DIR/${directories[$theme]}
+    if [ -d $INSTALL_DIR/$theme_dir ]; then
+        echo "Removing existing installation"
+        rm -rdf $INSTALL_DIR/$theme_dir
+    fi
     echo "Installing theme"
     if [ ! -d "$INSTALL_DIR" ]; then
 	  mkdir "$INSTALL_DIR"
