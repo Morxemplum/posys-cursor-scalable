@@ -66,6 +66,10 @@
          style="stop-color:#c000ff;stop-opacity:1;"
          offset="0.86000001"
          id="stop27" />
+      <stop
+         style="stop-color:#c000ff;stop-opacity:1;"
+         offset="1"
+         id="stop29" />
     </linearGradient>
     <clipPath
        clipPathUnits="userSpaceOnUse"
