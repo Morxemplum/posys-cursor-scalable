@@ -1,0 +1,6 @@
+resize_algorithm = none
+hotspot_x = 0.253
+hotspot_y = 0
+
+define_size = 0, INSERT_SVG_NAME_HERE.svg
+
