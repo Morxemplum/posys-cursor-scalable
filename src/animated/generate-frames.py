@@ -90,6 +90,13 @@ def reapply_shades(stops):
             stops[i][0] = shades[shades.index(stops[i][0]) ^ 1]
             flipped = True
 
+# Unfortunately, with this programmable method, the gradient stops will have aliasing (stair-stepping) when rasterized 
+# But by shifting one of the stops a very small amount, we can achieve anti-aliasing.
+# (Should work well for the limited range we have. Only remove if you're making a REALLY big raster)
+def fix_aliasing(stops):
+    for i in range(1, len(stops) + 1, 2):
+        stops[i][1] -= 0.001
+
 def generate_frames(stops, total_frames, pre, post):
     for i in range(1, total_frames):
         print("Generating frame", i)
@@ -99,6 +106,7 @@ def generate_frames(stops, total_frames, pre, post):
         transformed = transform_stops(stops, t_amount)
         for stop in transformed:
             stop[1] = round(stop[1], 3)
+        fix_aliasing(transformed)
         pop_stops(transformed)
         if MONO:
             reapply_shades(transformed)
