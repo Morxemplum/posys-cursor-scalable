@@ -12,4 +12,3 @@ define_override = size_hor
 define_override = size-hor
 define_override = v_double_arrow
 define_override = ew-resize
-define_override = row-resize
