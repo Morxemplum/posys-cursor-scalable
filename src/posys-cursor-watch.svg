@@ -7,8 +7,8 @@
    width="75"
    height="75"
    viewBox="0 0 75 75"
-   sodipodi:docname="posys-cursor-watch (efficient).svg"
-   inkscape:version="1.3.2 (091e20ef0f, 2023-11-25)"
+   sodipodi:docname="posys-cursor-watch.svg"
+   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -511,11 +511,11 @@
     <linearGradient
        inkscape:collect="always"
        xlink:href="#linearGradient16"
-       id="linearGradient17"
-       x1="-10.196605"
-       y1="29.80319"
-       x2="-48.197155"
-       y2="-9.1968098"
+       id="linearGradient7"
+       x1="75"
+       y1="0"
+       x2="0"
+       y2="75"
        gradientUnits="userSpaceOnUse" />
   </defs>
   <sodipodi:namedview
@@ -527,15 +527,16 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="3.9933334"
-     inkscape:cx="37.813022"
-     inkscape:cy="55.467445"
-     inkscape:window-width="1251"
-     inkscape:window-height="1359"
+     inkscape:zoom="8"
+     inkscape:cx="40.625"
+     inkscape:cy="29.8125"
+     inkscape:window-width="1920"
+     inkscape:window-height="1008"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg1">
+     inkscape:current-layer="svg1"
+     showguides="true">
     <inkscape:page
        x="0"
        y="0"
@@ -548,12 +549,25 @@
        inkscape:export-filename="../../../Pictures/posys-cursor-watch (efficient).svg"
        inkscape:export-xdpi="163.84"
        inkscape:export-ydpi="163.84" />
+    <sodipodi:guide
+       position="37.5,28.242188"
+       orientation="1,0"
+       id="guide1"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="47.996094,37.636719"
+       orientation="1,0"
+       id="guide2"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="27,37.402344"
+       orientation="1,0"
+       id="guide3"
+       inkscape:locked="false" />
   </sodipodi:namedview>
   <path
-     id="path1"
-     clip-path="url(#clipPath21-1)"
-     style="display:inline;opacity:1;fill:url(#linearGradient17);fill-opacity:1;fill-rule:nonzero;stroke:none"
-     d="M -33.394421,54.605779 -67.999807,22.000148 -33.999733,-34.000407 10.605496,10.60585 Z"
-     transform="matrix(1.9230772,0,0,-1.9230766,92.686844,57.31383)"
-     sodipodi:nodetypes="ccccc" />
+     style="display:inline;opacity:1;fill:url(#linearGradient7);stroke-width:1.45"
+     d="M 0,0 H 75 C 72.790291,12.639534 53.741337,28.309528 47.996094,37.501916 53.166812,46.561722 72.56618,61.546126 75,75 H 0 C 2.25,61.625 21.75,47.001916 27,37.501916 21.254757,27.779198 2.5632621,12.374369 0,0 Z"
+     id="path6"
+     sodipodi:nodetypes="ccccccc" />
 </svg>
