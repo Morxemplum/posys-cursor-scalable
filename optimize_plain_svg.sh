@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 CURRENT_DIR=`pwd`
-CURSOR_DIR="${CURRENT_DIR}/hyprcursor_themes/mono_black/hyprcursors/"
+CURSOR_DIR="${CURRENT_DIR}/plasma_themes/posys_cursor_scalable/cursors_scalable/"
 
 if [ ! -d "$CURSOR_DIR" ]; then
     echo "ERROR: Cursor Directory does not exist."
