@@ -2,8 +2,10 @@
 set -euo pipefail
 
 BIN_DIR="$( dirname "${BASH_SOURCE[0]}" )"
-SRC_DIR="../../src"
-RAWSVG_DIR="$SRC_DIR/svg"
+THEMES_DIR="../.."
+SRC_DIR="$THEMES_DIR/src"
+# TODO: Make this easily interchangable with the different variants
+CURSOR_DIR="$THEMES_DIR/posys_cursor_scalable/cursors_scalable"
 INDEX="$SRC_DIR/index.theme"
 ALIASES="$SRC_DIR/alias.list"
 
@@ -13,9 +15,8 @@ FRAME_TIME=30
 SCALES="50 75 100 125 150 175 200"
 
 echo -ne "Checking Requirements...\\r"
-if [[ ! -d "${RAWSVG_DIR}" ]]; then
-	echo -e "\\nFAIL: SVG folder missing in /src ($(readlink -m $SRC_DIR))"
-	echo -e "Configured SVG folder: '${RAWSVG_DIR}'"
+if [[ ! -d "${CURSOR_DIR}" ]]; then
+	echo -e "\\nFAIL: Missing cursor theme"
 	exit 1
 fi
 
@@ -47,20 +48,20 @@ mkdir -p "build/config"
 echo -e "\033[0KMaking Folders... DONE";
 
 echo "Generating pixmaps..."
-for RAWSVG in ${RAWSVG_DIR}/*.svg; do
-	BASENAME=${RAWSVG##*/}
+for SVG in `find $CURSOR_DIR -iname "*.svg"`; do
+	BASENAME=${SVG##*/}
 	BASENAME=${BASENAME%.*}
-	genPixmaps="file-open:${RAWSVG};"
+	genPixmaps="file-open:${SVG};"
 
 	echo -ne "    $BASENAME...\\r"
 
 	for scale in $SCALES; do
 		DIR="build/x${scale}"
-		if [[ "${DIR}/${BASENAME}.png" -ot ${RAWSVG} ]]; then
-			genPixmaps="${genPixmaps} export-width:$((${REAL_SIZE}*scale/100)); export-height:$((${REAL_SIZE}*scale/100)); export-filename:${DIR}/${BASENAME}.png; export-do;"
+		if [[ "${DIR}/${BASENAME}.png" -ot ${SVG} ]]; then
+			genPixmaps="${genPixmaps} export-width:$((${CURSOR_SIZE}*scale/100)); export-height:$((${CURSOR_SIZE}*scale/100)); export-filename:${DIR}/${BASENAME}.png; export-do;"
 		fi
 	done
-	if [ "$genPixmaps" != "file-open:${RAWSVG};" ]; then
+	if [ "$genPixmaps" != "file-open:${SVG};" ]; then
 		inkscape --shell < <(echo "${genPixmaps}") > /dev/null
 	fi
 
@@ -74,7 +75,8 @@ OUTPUT=${OUTPUT// /_}
 rm -rf "$OUTPUT"
 mkdir -p "$OUTPUT/cursors"
 mkdir -p "$OUTPUT/cursors_scalable"
-$BIN_DIR/generate_cursors ${RAWSVG_DIR} "build" "$OUTPUT/cursors" "$OUTPUT/cursors_scalable" ${NOMINAL_SIZE} ${FRAME_TIME} ${SCALES}
+# python generate_cursors ../../posys_cursor_scalable/cursors_scalable build ../../posys_cursor_scalable/cursors 100
+$BIN_DIR/generate_cursors ${CURSOR_DIR} "build" "$OUTPUT/cursors" ${SCALES}
 echo "Generating cursor theme... DONE"
 
 echo -ne "Generating shortcuts...\\r"
