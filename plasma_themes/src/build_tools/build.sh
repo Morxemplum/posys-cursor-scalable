@@ -9,10 +9,13 @@ VAR_DIR="$THEMES_DIR/posys_cursor_scalable"
 CURSOR_DIR="$VAR_DIR/cursors_scalable"
 ALIASES="$SRC_DIR/alias.list"
 
-NOMINAL_SIZE=24
-REAL_SIZE=32
-FRAME_TIME=30
-SCALES="50 75 100 125 150 175 200"
+CURSOR_SIZE=24
+# Certain cursors employ an additional sprite in place of the default tail.
+# These enlargen the canvas size by 33%. So these cursors will be larger to
+# ensure the cursor size is consistent.
+TAIL_CURSORS=("alias" "context-menu" "copy" "help" "no-drop" "progress")
+TAIL_ICON_SIZE=32
+SCALES="100 125 150 175 200"
 
 echo -ne "Checking Requirements...\\r"
 if [[ ! -d "${CURSOR_DIR}" ]]; then
@@ -47,10 +50,18 @@ for SVG in `find $CURSOR_DIR -iname "*.svg"`; do
 
 	echo -ne "    $BASENAME...\\r"
 
+	ACTUAL_SIZE=$CURSOR_SIZE
+	# Match cursor name with tail cursors
+	for tail in "${TAIL_CURSORS[@]}"; do
+		if [[ ${BASENAME} == ${tail} ]]; then
+			ACTUAL_SIZE=$TAIL_ICON_SIZE
+		fi
+	done
+
 	for scale in $SCALES; do
 		DIR="build/x${scale}"
 		if [[ "${DIR}/${BASENAME}.png" -ot ${SVG} ]]; then
-			genPixmaps="${genPixmaps} export-width:$((${CURSOR_SIZE}*scale/100)); export-height:$((${CURSOR_SIZE}*scale/100)); export-filename:${DIR}/${BASENAME}.png; export-do;"
+			genPixmaps="${genPixmaps} export-width:$((${ACTUAL_SIZE}*scale/100)); export-height:$((${ACTUAL_SIZE}*scale/100)); export-filename:${DIR}/${BASENAME}.png; export-do;"
 		fi
 	done
 	if [ "$genPixmaps" != "file-open:${SVG};" ]; then
@@ -63,7 +74,6 @@ echo "Generating pixmaps... DONE"
 
 echo "Generating cursor theme..."
 OUTPUT="$VAR_DIR/cursors"
-# python generate_cursors ../../posys_cursor_scalable/cursors_scalable build ../../posys_cursor_scalable/cursors 100
 $BIN_DIR/generate_cursors ${CURSOR_DIR} "build" ${OUTPUT} ${SCALES}
 echo "Generating cursor theme... DONE"
 
