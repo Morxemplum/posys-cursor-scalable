@@ -19,6 +19,8 @@ if [[ ! -d "${RAWSVG_DIR}" ]]; then
 	exit 1
 fi
 
+# TODO: Remove the index step as it is unnecessary
+
 if [[ ! -f "${INDEX}" ]]; then
 	echo -e "\\nFAIL: Index file missing in /src ($(readlink -m $SRC_DIR))"
 	echo -e "Configured index file: '${INDEX}'"
@@ -32,11 +34,6 @@ fi
 
 if ! command -v xcursorgen > /dev/null ; then
 	echo -e "\\nFAIL: xcursorgen not found. Make sure you install xcursorgen through your package manager"
-	exit 1
-fi
-
-if ! python -c "import PySide6; exit(0)" > /dev/null 2>&1 ; then
-	echo -e "\\nFAIL: PySide6 tools are missing. Make sure you install them through your package manager, or pip"
 	exit 1
 fi
 
