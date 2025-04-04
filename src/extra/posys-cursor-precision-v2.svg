@@ -4,11 +4,11 @@
 <svg
    version="1.1"
    id="svg1"
-   width="75"
-   height="75"
-   viewBox="0 0 75 75"
+   width="24"
+   height="24"
+   viewBox="0 0 24 24"
    sodipodi:docname="posys-cursor-precision-v2.svg"
-   inkscape:version="1.3.2 (091e20ef0f, 2023-11-25)"
+   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -458,11 +458,11 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="7.9866667"
-     inkscape:cx="51.085142"
-     inkscape:cy="24.165275"
-     inkscape:window-width="2560"
-     inkscape:window-height="1374"
+     inkscape:zoom="11.294852"
+     inkscape:cx="20.141919"
+     inkscape:cy="19.787775"
+     inkscape:window-width="1536"
+     inkscape:window-height="792"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
@@ -472,8 +472,8 @@
        y="0"
        inkscape:label="1"
        id="page1"
-       width="75"
-       height="75"
+       width="24"
+       height="24"
        margin="112.708 146.66667 44.262665 157.33333"
        bleed="0" />
   </sodipodi:namedview>
@@ -486,19 +486,19 @@
        id="path78"
        d="m 0,0 c -9.925,0 -18,8.075 -18,18 0,9.925 8.075,18 18,18 C 9.925,36 18,27.925 18,18 18,8.075 9.925,0 0,0 M 21,20 H 19.899 C 18.957,29.434 11.434,36.957 2,37.899 V 39 c 0,1.105 -0.895,2 -2,2 -1.105,0 -2,-0.895 -2,-2 V 37.899 C -11.434,36.957 -18.957,29.434 -19.899,20 H -21 c -1.105,0 -2,-0.895 -2,-2 0,-1.105 0.895,-2 2,-2 h 1.101 C -18.957,6.566 -11.434,-0.957 -2,-1.899 V -3 c 0,-1.105 0.895,-2 2,-2 1.105,0 2,0.895 2,2 v 1.101 C 11.434,-0.957 18.957,6.566 19.899,16 H 21 c 1.105,0 2,0.895 2,2 0,1.105 -0.895,2 -2,2"
        style="display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
-       transform="matrix(1.3333333,0,0,-1.3333333,30.666666,54.360789)"
+       transform="matrix(0.42666666,0,0,-0.42666666,9.8133333,17.187457)"
        clip-path="url(#clipPath79-9)" />
     <path
        id="path80"
        d="M 0,0 V 4.049 H -2 V 0 c -8.079,0.5 -14.549,6.971 -15.049,15.049 H -13 v 2 h -4.049 c 0.5,8.079 6.97,14.55 15.049,15.05 v -4.05 h 2 v 4.05 c 8.079,-0.5 14.549,-6.971 15.049,-15.05 H 11 v -2 h 4.049 C 14.549,6.971 8.079,0.5 0,0 m -1,34.15 c -9.98,0 -18.1,-8.12 -18.1,-18.101 0,-9.98 8.12,-18.1 18.1,-18.1 9.98,0 18.1,8.12 18.1,18.1 C 17.1,26.03 8.98,34.15 -1,34.15"
        style="display:inline;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
-       transform="matrix(1.3333333,0,0,-1.3333333,32.000006,51.759989)"
+       transform="matrix(0.42666666,0,0,-0.42666666,10.240002,16.355201)"
        clip-path="url(#clipPath81-6)" />
     <path
        id="path82"
        d="m 0,0 c 0,-0.994 -0.806,-1.8 -1.8,-1.8 -0.994,0 -1.8,0.806 -1.8,1.8 0,0.994 0.806,1.8 1.8,1.8 C -0.806,1.8 0,0.994 0,0"
        style="display:inline;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
-       transform="matrix(1.3333333,0,0,-1.3333333,33.066666,30.360789)"
+       transform="matrix(0.42666666,0,0,-0.42666666,10.581333,9.5074567)"
        clip-path="url(#clipPath83-6)" />
   </g>
 </svg>
