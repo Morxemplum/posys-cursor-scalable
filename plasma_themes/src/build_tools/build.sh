@@ -78,28 +78,47 @@ OUTPUT="$VAR_DIR/cursors"
 $BIN_DIR/generate_cursors ${CURSOR_DIR} "build" ${OUTPUT} ${SCALES}
 echo "Generating cursor theme... DONE"
 
-# TODO: Support comments
 echo -ne "Generating shortcuts...\\r"
 while read ALIAS ; do
-	FROM=${ALIAS% *}
-	TO=${ALIAS#* }
+	# Skip comments (#)
+	if [[ $ALIAS =~ ^#.* ]]; then
+		continue
+	fi
+	TO=${ALIAS% *}
+	FROM=${ALIAS#* }
 
-	if [[ -e "$OUTPUT/$FROM" ]]; then
+	# Skip empty lines
+	if [[ $FROM == "" ]] || [[ $TO == "" ]]; then
 		continue
 	fi
 
-	ln -s "$TO" "$OUTPUT/$FROM"
+	# echo "FROM: ${FROM} TO: ${TO}"
+
+	if [[ -e "$OUTPUT/$TO" ]]; then
+		continue
+	fi
+
+	ln -s "$FROM" "$OUTPUT/$TO"
 done < $ALIASES
 
 while read ALIAS ; do
-	FROM=${ALIAS% *}
-	TO=${ALIAS#* }
+	# Skip comments (#)
+	if [[ $ALIAS =~ ^#.* ]]; then
+		continue
+	fi
+	TO=${ALIAS% *}
+	FROM=${ALIAS#* }
 
-	if [[ -e "$CURSOR_DIR/$FROM" ]]; then
+	# Skip empty lines
+	if [[ $FROM == "" ]] || [[ $TO == "" ]]; then
 		continue
 	fi
 
-	ln -s "$TO" "$CURSOR_DIR/$FROM"
+	if [[ -e "$CURSOR_DIR/$TO" ]]; then
+		continue
+	fi
+
+	ln -s "$FROM" "$CURSOR_DIR/$TO"
 done < $ALIASES
 echo -e "\033[0KGenerating shortcuts... DONE"
 
