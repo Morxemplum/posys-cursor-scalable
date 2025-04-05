@@ -1,5 +1,4 @@
 #!/bin/bash
-# TODO: Add an option to clean up aliases in scalable cursors (perhaps a separate script?)
 set -euo pipefail
 
 BIN_DIR="$( dirname "${BASH_SOURCE[0]}" )"
