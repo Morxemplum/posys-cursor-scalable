@@ -1,1 +1,48 @@
-<svg width="75" height="75" version="1.1" viewBox="0 0 75 75" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><clipPath id="b"><path transform="translate(-133.9 -114)" d="m0 324h524v-324h-524z"/></clipPath><linearGradient id="a" x1="75" x2="0" y2="75" gradientTransform="matrix(.3431 0 0 .3431 54.26 52.46)" gradientUnits="userSpaceOnUse"><stop stop-color="#ff0030" offset="0"/><stop stop-color="#ff0030" offset=".14"/><stop stop-color="#fea002" offset=".14"/><stop stop-color="#fea002" offset=".28"/><stop stop-color="#fffc00" offset=".28"/><stop stop-color="#fffc00" offset=".43"/><stop stop-color="#46f609" offset=".43"/><stop stop-color="#46f609" offset=".57"/><stop stop-color="#00baff" offset=".57"/><stop stop-color="#00baff" offset=".71"/><stop stop-color="#06f" offset=".71"/><stop stop-color="#06f" offset=".86"/><stop stop-color="#c000ff" offset=".86"/><stop stop-color="#c000ff" offset="1"/></linearGradient></defs><g transform="matrix(.9716 0 0 .9716 -34.01 -.9716)"><path transform="matrix(1.333 0 0 -1.333 56.17 38.9)" d="m0 0 11.12 5e-3 -26 26 2e-3 -36.78 7.866 7.865c2.081 1.851 4.396 2.896 7.012 2.905" clip-path="url(#b)" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-miterlimit="10" stroke-width="2"/><path d="m54.26 52.46h25.73c-0.7581 4.336-7.293 9.712-9.264 12.87 1.774 3.108 8.429 8.249 9.264 12.86h-25.73c0.7719-4.589 7.462-9.605 9.263-12.86-1.971-3.336-8.383-8.62-9.263-12.87z" fill="url(#a)" stroke-width=".4974"/></g></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="32"
+   height="32"
+   viewBox="0 0 32 32"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs1"><clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath71-1"><path
+         d="M 0,324 H 524 V 0 H 0 Z"
+         transform="translate(-133.8805,-114.0009)"
+         id="path71-2" /></clipPath></defs><g
+     id="layer1"
+     transform="matrix(0.9716294,0,0,0.9716294,-34.007031,-0.97162791)"><path
+       id="path70"
+       d="m 0,0 11.12,0.005 -26,26.003 0.002,-36.778 7.866,7.865 C -4.931,-1.054 -2.616,-0.009 0,0"
+       style="display:inline;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+       transform="matrix(0.56888887,0,0,-0.56888887,44.034032,17.169266)"
+       clip-path="url(#clipPath71-1)" /><g
+       id="g2"
+       transform="matrix(0.4574218,0,0,0.4574218,43.217936,22.956243)"><path
+         id="path46"
+         style="fill:#c000ff"
+         d="M 2.3320312,19.482422 C 1.1725164,20.979892 0.25007104,22.513467 0,24 h 6.8496094 z" /><path
+         id="path42"
+         style="display:inline;fill:#0066ff"
+         d="m 5.5273438,15.818359 c -1.0731389,1.161037 -2.214975,2.396202 -3.1953126,3.66211 L 6.8515625,24 h 6.8574215 z" /><path
+         id="path38"
+         style="fill:#00baff"
+         d="m 8.6132812,12.042969 c -0.6099431,1.082363 -1.791087,2.372522 -3.0859374,3.773437 L 13.710938,24 h 6.859374 z" /><path
+         id="path34"
+         style="fill:#46f609"
+         d="m 0,0 c 0.82024387,3.9597981 6.8021472,8.8887304 8.640625,12 -0.0077,0.01393 -0.019457,0.02897 -0.027344,0.04297 L 20.570312,24 H 24 c -0.778822,-4.30524 -6.985995,-9.100862 -8.640625,-12 0.0083,-0.01332 0.0208,-0.02761 0.0293,-0.04102 L 3.4296875,0 Z" /><path
+         id="path30"
+         style="fill:#fffc00"
+         d="M 3.4296875,0 15.388672,11.958984 c 0.657764,-1.037472 1.835673,-2.3337817 3.113281,-3.7460934 L 10.289062,0 Z" /><path
+         id="path26"
+         style="fill:#fea002"
+         d="m 10.291016,0 8.210937,8.2109375 c 1.064899,-1.1771796 2.189756,-2.4304617 3.15625,-3.7011719 L 17.148438,0 Z" /><path
+         id="path22"
+         style="fill:#fe002e"
+         d="m 17.150391,0 4.507812,4.5078125 C 22.825113,2.9734203 23.750592,1.4266136 24,0 Z" /></g></g></svg>

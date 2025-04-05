@@ -9,9 +9,8 @@
 
 
 CURRENT_DIR=`pwd`
-SVG_DIR=$(xdg-user-dir)/Pictures
-CURSOR_DIR="${CURRENT_DIR}/plasma_themes/posys_cursor_scalable/cursors_scalable/"
-# CURSOR_DIR="${CURRENT_DIR}/plasma_themes/posys_cursor_scalable/src/svg/"
+SVG_DIR=$CURRENT_DIR
+CURSOR_DIR="${CURRENT_DIR}/plasma_themes/posys_cursor_scalable/cursors_scalable"
 
 if [ ! -d "$CURSOR_DIR" ]; then
     echo "ERROR: Cursor Directory does not exist."

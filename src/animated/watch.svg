@@ -1,1 +1,42 @@
-<svg width="75" height="75" version="1.1" viewBox="0 0 75 75" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><linearGradient id="a" x1="75" x2="0" y2="75" gradientUnits="userSpaceOnUse"><stop stop-color="#ff0030" offset="0"/><stop stop-color="#ff0030" offset=".14"/><stop stop-color="#fea002" offset=".14"/><stop stop-color="#fea002" offset=".28"/><stop stop-color="#fffc00" offset=".28"/><stop stop-color="#fffc00" offset=".43"/><stop stop-color="#46f609" offset=".43"/><stop stop-color="#46f609" offset=".57"/><stop stop-color="#00baff" offset=".57"/><stop stop-color="#00baff" offset=".71"/><stop stop-color="#06f" offset=".71"/><stop stop-color="#06f" offset=".86"/><stop stop-color="#c000ff" offset=".86"/><stop stop-color="#c000ff" offset="1"/></linearGradient></defs><path d="m0 0h75c-2.21 12.64-21.26 28.31-27 37.5 5.171 9.06 24.57 24.04 27 37.5h-75c2.25-13.38 21.75-28 27-37.5-5.745-9.723-24.44-25.13-27-37.5z" fill="url(#a)" stroke-width="1.45"/></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="24"
+   height="24"
+   viewBox="0 0 24 24"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <path
+     id="path46"
+     style="fill:#c000ff"
+     d="M 2.3320312 19.482422 C 1.1725164 20.979892 0.25007104 22.513467 0 24 L 6.8496094 24 L 2.3320312 19.482422 z " />
+  <path
+     id="path42"
+     style="display:inline;fill:#0066ff"
+     d="M 5.5273438 15.818359 C 4.4542049 16.979396 3.3123688 18.214561 2.3320312 19.480469 L 6.8515625 24 L 13.708984 24 L 5.5273438 15.818359 z " />
+  <path
+     id="path38"
+     style="fill:#00baff"
+     d="M 8.6132812 12.042969 C 8.0033381 13.125332 6.8221942 14.415491 5.5273438 15.816406 L 13.710938 24 L 20.570312 24 L 8.6132812 12.042969 z " />
+  <path
+     id="path34"
+     style="fill:#46f609"
+     d="M 0 0 C 0.82024387 3.9597981 6.8021472 8.8887304 8.640625 12 C 8.6329285 12.013927 8.6211682 12.028973 8.6132812 12.042969 L 20.570312 24 L 24 24 C 23.221178 19.69476 17.014005 14.899138 15.359375 12 C 15.3677 11.986681 15.380174 11.972388 15.388672 11.958984 L 3.4296875 0 L 0 0 z " />
+  <path
+     id="path30"
+     style="fill:#fffc00"
+     d="M 3.4296875 0 L 15.388672 11.958984 C 16.046436 10.921512 17.224345 9.6252023 18.501953 8.2128906 L 10.289062 0 L 3.4296875 0 z " />
+  <path
+     id="path26"
+     style="fill:#fea002"
+     d="M 10.291016 0 L 18.501953 8.2109375 C 19.566852 7.0337579 20.691709 5.7804758 21.658203 4.5097656 L 17.148438 0 L 10.291016 0 z " />
+  <path
+     id="path22"
+     style="fill:#fe002e"
+     d="M 17.150391 0 L 21.658203 4.5078125 C 22.825113 2.9734203 23.750592 1.4266136 24 0 L 17.150391 0 z " />
+</svg>

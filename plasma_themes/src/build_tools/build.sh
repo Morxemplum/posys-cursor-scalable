@@ -1,4 +1,5 @@
 #!/bin/bash
+# TODO: Add an option to clean up aliases in scalable cursors (perhaps a separate script?)
 set -euo pipefail
 
 BIN_DIR="$( dirname "${BASH_SOURCE[0]}" )"
@@ -77,6 +78,7 @@ OUTPUT="$VAR_DIR/cursors"
 $BIN_DIR/generate_cursors ${CURSOR_DIR} "build" ${OUTPUT} ${SCALES}
 echo "Generating cursor theme... DONE"
 
+# TODO: Support comments
 echo -ne "Generating shortcuts...\\r"
 while read ALIAS ; do
 	FROM=${ALIAS% *}
