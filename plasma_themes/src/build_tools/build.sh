@@ -74,6 +74,9 @@ echo "Generating pixmaps... DONE"
 
 echo "Generating cursor theme..."
 OUTPUT="$VAR_DIR/cursors"
+if [[ ! -d "${OUTPUT}" ]]; then
+	mkdir $OUTPUT
+fi
 $BIN_DIR/generate_cursors ${CURSOR_DIR} "build" ${OUTPUT} ${SCALES}
 echo "Generating cursor theme... DONE"
 
