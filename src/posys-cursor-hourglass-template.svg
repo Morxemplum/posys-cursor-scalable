@@ -25,8 +25,8 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="11.313709"
-     inkscape:cx="10.474019"
-     inkscape:cy="12.948893"
+     inkscape:cx="10.562407"
+     inkscape:cy="13.037281"
      inkscape:window-width="1536"
      inkscape:window-height="792"
      inkscape:window-x="0"
@@ -62,6 +62,12 @@
        id="guide3"
        inkscape:locked="false" />
   </sodipodi:namedview>
+  <path
+     style="display:inline;opacity:1;fill:#ffffff;fill-opacity:1;stroke-width:0.464"
+     d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
+     id="path1"
+     sodipodi:nodetypes="ccccccc"
+     inkscape:label="hourglass" />
   <path
      style="fill:#c000ff"
      d="m -8.5761719,8.5742188 -3.4296871,3.4296872 24,24 3.429687,-3.429687 z"
