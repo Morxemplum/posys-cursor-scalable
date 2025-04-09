@@ -26,7 +26,7 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="11.313709"
      inkscape:cx="10.562407"
-     inkscape:cy="13.037281"
+     inkscape:cy="13.125669"
      inkscape:window-width="1536"
      inkscape:window-height="792"
      inkscape:window-x="0"
@@ -65,84 +65,84 @@
   <path
      style="display:inline;opacity:1;fill:#ffffff;fill-opacity:1;stroke-width:0.464"
      d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
-     id="path1"
+     id="hourglass_fill"
      sodipodi:nodetypes="ccccccc"
      inkscape:label="hourglass" />
   <path
      style="fill:#c000ff"
      d="m -8.5761719,8.5742188 -3.4296871,3.4296872 24,24 3.429687,-3.429687 z"
-     id="path46"
-     inkscape:label="layer1" />
+     id="layer1"
+     inkscape:label="violet" />
   <path
      style="fill:#0066ff"
      d="M -5.1464844,5.1445312 -8.5742188,8.5742188 15.425781,32.574219 18.853516,29.144531 Z"
-     id="path42"
-     inkscape:label="layer2" />
+     id="layer2"
+     inkscape:label="indigo" />
   <path
      style="fill:#00baff"
      d="M -1.7148437,1.7148437 -5.1445312,5.1445312 18.855469,29.144531 22.285156,25.714844 Z"
-     id="path38"
-     inkscape:label="layer3" />
+     id="layer3"
+     inkscape:label="blue" />
   <path
      style="fill:#46f609"
      d="M 1.7148437,-1.7148437 -1.7148437,1.7148437 22.285156,25.714844 25.714844,22.285156 Z"
-     id="path34"
-     inkscape:label="layer4" />
+     id="layer4"
+     inkscape:label="green" />
   <path
      style="fill:#fffc00"
      d="M 5.1445312,-5.1445312 1.7148437,-1.7148437 25.714844,22.285156 29.144531,18.855469 Z"
-     id="path30"
-     inkscape:label="layer5" />
+     id="layer5"
+     inkscape:label="yellow" />
   <path
      style="fill:#fea002"
      d="M 8.5742188,-8.5742188 5.1445312,-5.1464844 29.144531,18.853516 32.574219,15.425781 Z"
-     id="path26"
-     inkscape:label="layer6" />
+     id="layer6"
+     inkscape:label="orange" />
   <path
      style="fill:#fe002e"
      d="M 12.003906,-12.005859 8.5742188,-8.5761719 32.574219,15.423828 36.003906,11.994141 Z"
-     id="path22"
-     inkscape:label="layer7" />
+     id="layer7"
+     inkscape:label="red" />
   <path
      style="display:inline;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
      d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
-     id="path6"
+     id="hourglass1"
      sodipodi:nodetypes="ccccccc"
      inkscape:label="hourglass1" />
   <path
      style="display:none;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
      d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
-     id="path8"
+     id="hourglass2"
      sodipodi:nodetypes="ccccccc"
      inkscape:label="hourglass2" />
   <path
      style="display:none;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
      d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
-     id="path10"
+     id="hourglass3"
      sodipodi:nodetypes="ccccccc"
      inkscape:label="hourglass3" />
   <path
      style="display:none;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
      d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
-     id="path12"
+     id="hourglass4"
      sodipodi:nodetypes="ccccccc"
      inkscape:label="hourglass4" />
   <path
      style="display:none;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
      d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
-     id="path14"
+     id="hourglass5"
      sodipodi:nodetypes="ccccccc"
      inkscape:label="hourglass5" />
   <path
      style="display:none;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
      d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
-     id="path16"
+     id="hourglass6"
      sodipodi:nodetypes="ccccccc"
      inkscape:label="hourglass6" />
   <path
      style="display:none;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
      d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
-     id="path18"
+     id="hourglass7"
      sodipodi:nodetypes="ccccccc"
      inkscape:label="hourglass7" />
 </svg>
