@@ -1,7 +1,8 @@
 theme_*
-src/animated/watch-*
-src/animated/background-*
+src/animated/wait*
+src/animated/progress*
 src/animated/meta.hl
+src/animated/metadata.json
 plasma_themes/src/build_tools/build
 plasma_themes/src/build_tools/Posy's_Cursor_(Scalable)
 *.tar.gz
