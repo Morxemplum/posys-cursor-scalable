@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 BIN_DIR="$( dirname "${BASH_SOURCE[0]}" )"
@@ -53,7 +53,7 @@ for SVG in `find $CURSOR_DIR -iname "*.svg"`; do
 	ACTUAL_SIZE=$CURSOR_SIZE
 	# Match cursor name with tail cursors
 	for tail in "${TAIL_CURSORS[@]}"; do
-		if [[ ${BASENAME} == ${tail} ]]; then
+		if [[ ${BASENAME} == ${tail}* ]]; then
 			ACTUAL_SIZE=$TAIL_ICON_SIZE
 		fi
 	done
