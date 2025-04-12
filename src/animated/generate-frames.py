@@ -53,6 +53,7 @@ define_override = progress
 def generate_frames(total_frames):
     export_statements = ["export-plain-svg", "export-do", "file-close"]
     delimiter = ";"
+    num_digits = int(math.log10(total_frames) + 1)
     start = 1
     end = len(colors) + 2
 
@@ -69,7 +70,7 @@ def generate_frames(total_frames):
     begin_statements = [f"select-by-id:layer{overflow}", f"select-by-id:hourglass{overflow}", "delete"]
 
     for i in range(0, total_frames):
-        print("Generating frame", i)
+        print(f"Generating frame {str(i).zfill(num_digits)}")
         statements = deepcopy(begin_statements)
         t_amount = i/total_frames * hypotenuse
         
@@ -117,7 +118,7 @@ def generate_frames(total_frames):
             statements.append(f"unselect-by-id:layer{j}")
 
         if i > 0:
-            statements.append(f"export-filename:{CURSOR_NAME}-{i}.svg")
+            statements.append(f"export-filename:{CURSOR_NAME}-{str(i).zfill(num_digits)}.svg")
         else:
             statements.append(f"export-filename:{CURSOR_NAME}.svg")
         statements += export_statements
@@ -125,6 +126,7 @@ def generate_frames(total_frames):
         subprocess.run(["inkscape", f"--actions={delimiter.join(statements)}", template], check=True)
 
 def write_metadata(total_frames, delay):
+    num_digits = int(math.log10(total_frames) + 1)
     # We will insert milliseconds in between frames to make up for lost time and get closer to our declared duration
     denom = round(1/((1000 / FRAME_RATE) - delay), 4)
     ins_buffer = 1
@@ -160,13 +162,14 @@ def write_metadata(total_frames, delay):
                 ins_buffer -= denom
                 final_delay += 1
             new_frame = deepcopy(frame_dict)
-            new_frame["filename"] = f"{CURSOR_NAME}-{i}.svg"
+            new_frame["filename"] = f"{CURSOR_NAME}-{str(i).zfill(num_digits)}.svg"
             new_frame["delay"] = final_delay
             frames.append(new_frame)
         with open("metadata.json", "w") as f:
             f.write(json.dumps(frames))
         
 def optimize_frames(total_frames):
+    num_digits = int(math.log10(total_frames) + 1)
     scour = ["scour", f"{CURSOR_NAME}.svg", f"{CURSOR_NAME}-o.svg", "--set-precision=4", 
     "--strip-xml-prolog", "--remove-titles", "--remove-description",
     "--remove-metadata", "--remove-descriptive-elements", 
@@ -178,13 +181,15 @@ def optimize_frames(total_frames):
     rename(f"{CURSOR_NAME}-o.svg", f"{CURSOR_NAME}.svg")
 
     for i in range(1, total_frames):
-        scour[1] = f"{CURSOR_NAME}-{i}.svg"
-        scour[2] = f"{CURSOR_NAME}-{i}o.svg"
+        fi = str(i).zfill(num_digits)
+        scour[1] = f"{CURSOR_NAME}-{fi}.svg"
+        scour[2] = f"{CURSOR_NAME}-{fi}o.svg"
         subprocess.run(scour, check=True)
-        remove(f"{CURSOR_NAME}-{i}.svg")
-        rename(f"{CURSOR_NAME}-{i}o.svg", f"{CURSOR_NAME}-{i}.svg")
+        remove(f"{CURSOR_NAME}-{fi}.svg")
+        rename(f"{CURSOR_NAME}-{fi}o.svg", f"{CURSOR_NAME}-{fi}.svg")
 
 def convert_to_svg_tiny(total_frames):
+    num_digits = int(math.log10(total_frames) + 1)
     SVGTINYPS_PATH = "../../svgtinyps"
     svgtinyps = [SVGTINYPS_PATH, "convert", f"{CURSOR_NAME}.svg", f"{CURSOR_NAME}-b.svg", "--title=\"Posy's Cursor\""]
     
@@ -193,11 +198,12 @@ def convert_to_svg_tiny(total_frames):
     rename(f"{CURSOR_NAME}-b.svg", f"{CURSOR_NAME}.svg")
 
     for i in range(1, total_frames):
-        svgtinyps[2] = f"{CURSOR_NAME}-{i}.svg"
-        svgtinyps[3] = f"{CURSOR_NAME}-{i}b.svg"
+        fi = str(i).zfill(num_digits)
+        svgtinyps[2] = f"{CURSOR_NAME}-{fi}.svg"
+        svgtinyps[3] = f"{CURSOR_NAME}-{fi}b.svg"
         subprocess.run(svgtinyps, check=True)
-        remove(f"{CURSOR_NAME}-{i}.svg")
-        rename(f"{CURSOR_NAME}-{i}b.svg", f"{CURSOR_NAME}-{i}.svg")
+        remove(f"{CURSOR_NAME}-{fi}.svg")
+        rename(f"{CURSOR_NAME}-{fi}b.svg", f"{CURSOR_NAME}-{fi}.svg")
 
 def main():
     total_frames = math.ceil(DURATION * FRAME_RATE / 1000)
@@ -206,7 +212,7 @@ def main():
     print("Calculated delay:", delay)
 
     generate_frames(total_frames)
-    
+
     print("Writing to metadata file")
     write_metadata(total_frames, delay)
 
