@@ -7,7 +7,7 @@
    width="24"
    height="24"
    viewBox="0 0 24 24"
-   sodipodi:docname="posys-cursor-hourglass-template.svg"
+   sodipodi:docname="hourglass-template.svg"
    inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -24,11 +24,11 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="11.313709"
-     inkscape:cx="10.562407"
-     inkscape:cy="13.125669"
-     inkscape:window-width="1536"
-     inkscape:window-height="792"
+     inkscape:zoom="16"
+     inkscape:cx="11.78125"
+     inkscape:cy="10.03125"
+     inkscape:window-width="2560"
+     inkscape:window-height="1374"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
@@ -104,6 +104,16 @@
      id="layer7"
      inkscape:label="red" />
   <path
+     style="fill:#fe002e"
+     d="m -12.006313,12.004 -3.429687,3.429687 24,24 3.429687,-3.429687 z"
+     id="layer0"
+     inkscape:label="overlay2" />
+  <path
+     style="fill:#c000ff;fill-opacity:1"
+     d="m 15.433687,-15.436 -3.429687,3.429687 24,24 L 39.433687,8.564 Z"
+     id="layer8"
+     inkscape:label="overlay1" />
+  <path
      style="display:inline;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
      d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
      id="hourglass1"
@@ -145,4 +155,16 @@
      id="hourglass7"
      sodipodi:nodetypes="ccccccc"
      inkscape:label="hourglass7" />
+  <path
+     style="display:none;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
+     d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
+     id="hourglass8"
+     sodipodi:nodetypes="ccccccc"
+     inkscape:label="hourglass8" />
+  <path
+     style="display:none;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
+     d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
+     id="hourglass0"
+     sodipodi:nodetypes="ccccccc"
+     inkscape:label="hourglass0" />
 </svg>

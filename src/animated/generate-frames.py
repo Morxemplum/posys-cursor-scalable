@@ -1,161 +1,40 @@
 import math
+import json
+import subprocess
+from copy import deepcopy
+from collections import deque
+from os import remove, rename
 
 # In milliseconds
 DURATION = 2500 # 715 for Mono (2/7 the duration)
 # Higher will lead to smoother appearance, at cost of efficiency and file size
 FRAME_RATE = 30
 REVERSE = True # Posy's animation goes in the opposite direction of the gradient
-CURSOR_NAME = "watch"
-MONO = False
+CURSOR_NAME = "progress"
+# MONO = False
+ENVIRONMENT = "plasma"
 
-colors = [ "ff0030", # red
-            "fea002", # orange
-            "fffc00", # yellow
-            "46f609", # green
-            "00baff", # turquoise
+colors = [  "c000ff", # purple 
             "0066ff", # blue
-            "c000ff" # purple 
+            "00baff", # turquoise
+            "46f609", # green
+            "fffc00", # yellow
+            "fea002", # orange
+            "ff0030" # red
         ]
 shades = [ "ffffff",
             "000000"
 ]
 
-# Positions are in denominations of 7
-def generate_positions():
-    stops = []
-    if MONO:
-        for i in range(14):
-            stops.append([shades[math.floor(i/2) % 2], math.ceil(i/2)/7])
-    else:
-        for i in range(14):
-            stops.append([colors[math.floor(i/2)], math.ceil(i/2)/7])
-    return stops
+segment_length = 3.43
+hypotenuse = segment_length * 7
 
-def generate_xml_stop(stop):
-    color, position = stop
-    return '''<stop
-    style="stop-color:#{};stop-opacity:1;"
-    offset="{}" />
-    '''.format(color, position)
-
-def transform_stops(stops, amount):
-    transformed_stops = []
-    for stop in stops:
-        t_pos = stop[1] + amount
-        while t_pos < 0:
-            t_pos += 1
-        while t_pos > 1:
-            t_pos -= 1
-        transformed_stops.append( [stop[0], t_pos] )
-    return transformed_stops
-
-def is_sorted(l):
-    if len(l) < 2:
-        return True
-    for i in range(1, len(l)):
-        prev = l[i-1][1]
-        curr = l[i][1]
-        if (prev > curr):
-            return False
-    return True
-
-# In SVG, out of order stops will not be displayed. So we need to pop them back to the start
-def pop_stops(stops):
-    if is_sorted(stops):
-        return
-    index = -2
-    previous = stops[-1][1]
-    current = stops[-2][1]
-    while (current <= previous and index > -len(stops)):
-        stops.insert(0, stops.pop())
-        previous = stops[-1][1]
-        current = stops[-2][1]
-        index -= 1
-    previous = stops[0][1]
-    current = stops[-1][1]
-    if (current <= previous):
-        stops.insert(0, stops.pop())
-
-# Mono is a special case where the ends are the same color. We need to reapply the shades so there's no repeat
-def reapply_shades(stops):
-    count = 0
-    flipped = False
-    for i in range(len(stops) - 2, -1, -1):
-        if (stops[i+1][0] == stops[i][0]):
-            count += 1
-        else:
-            count = 0
-        if (count > 1 or flipped):
-            # Use XOR to flip the position
-            stops[i][0] = shades[shades.index(stops[i][0]) ^ 1]
-            flipped = True
-
-# Unfortunately, with this programmable method, the gradient stops will have aliasing (stair-stepping) when rasterized 
-# But by shifting one of the stops a very small amount, we can achieve anti-aliasing.
-# (Should work well for the limited range we have. Only remove if you're making a REALLY big raster)
-def fix_aliasing(stops):
-    for i in range(1, len(stops) + 1, 2):
-        stops[i][1] -= 0.001
-
-def generate_frames(stops, total_frames, pre, post):
-    for i in range(1, total_frames):
-        print("Generating frame", i)
-        t_amount = i/total_frames
-        if MONO:
-            t_amount *= (2/7)
-        transformed = transform_stops(stops, t_amount)
-        for stop in transformed:
-            stop[1] = round(stop[1], 3)
-        fix_aliasing(transformed)
-        pop_stops(transformed)
-        if MONO:
-            reapply_shades(transformed)
-        with open(CURSOR_NAME + "-" + str(i) + ".svg", "w") as f:
-            for line in pre:
-                f.write(line)
-            for stop in transformed:
-                f.write(generate_xml_stop(stop))
-            for line in post:
-                f.write(line)
-
-# Helper function to find the "stop" XML tag to address an issue in background.svg, where the first linearGradient is not the one we're looking for
-def find_stop(lines):
-    for line in lines:
-        if "<stop" in line:
-            return True
-    return False
-
-def copy_svg_data(file_name):
-    contents = []
-    with open(file_name, "r") as f:
-        contents = f.readlines()
-    pre_stops = []
-    post_stops = []
-    gradient_found = False
-    i = 0
-    j = 0
-    for line in contents:
-        # Inkscape exports the Plain SVG by attaching an id for some reason, usually the line after
-        if ("<linearGradient" in line and find_stop(contents[i:i+3])):
-            gradient_found = True
-            i += 1
-            pre_stops = contents[:i + 1]
-            # Inkscape is wildly inconsistent with its formatting, so we have to clear any garbage text
-            pre_stops[-1] = pre_stops[-1][:(pre_stops[-1].find(">") + 1)] + "\n"
-        if (gradient_found):
-            if ("</linearGradient>" in line):
-                post_stops = contents[j:]
-                post_stops[0] = post_stops[0][(post_stops[0].find("<")):]
-                return (pre_stops, post_stops)
-        else:
-            i += 1
-        j += 1
-    if (gradient_found):
-        raise IOError("End of gradient expected, got EOF")
-    else:
-        raise Exception("No gradient is in the target SVG")
-
-headers = {
+# In the progress template, the hourglass is significantly smaller and the measurements have to be adjusted
+if CURSOR_NAME == "progress":
+    hypotenuse = 10.67
+    segment_length = hypotenuse / 7
+    
+hypr_headers = {
 "watch":'''resize_algorithm = none
 hotspot_x = 0
 hotspot_y = 0
@@ -171,39 +50,171 @@ define_override = progress
 
 '''}
 
+def generate_frames(total_frames):
+    export_statements = ["export-plain-svg", "export-do", "file-close"]
+    delimiter = ";"
+    start = 1
+    end = len(colors) + 2
+
+    template = "hourglass-template.svg"
+    if CURSOR_NAME == "progress":
+        template = "background-template.svg"
+
+    overflow = 0
+    if REVERSE:
+        start -= 1
+        end -= 1
+        overflow = 8
+    
+    begin_statements = [f"select-by-id:layer{overflow}", f"select-by-id:hourglass{overflow}", "delete"]
+
+    for i in range(0, total_frames):
+        print("Generating frame", i)
+        statements = deepcopy(begin_statements)
+        t_amount = i/total_frames * hypotenuse
+        
+        # Recolor to appropriate areas
+        if t_amount > segment_length:
+            cycles = int(t_amount // segment_length)
+            color_copy = deque(colors)
+            if REVERSE:
+                for _ in range(0, cycles):
+                    color_copy.appendleft(color_copy.pop())
+            else:
+                for _ in range(0, cycles):
+                    color_copy.append(color_copy.popleft())
+
+            for j in range(1, len(color_copy) + 1):
+                statements.append(f"select-by-id:layer{j}")
+                statements.append(f"object-set-attribute: style, fill:#{color_copy[j - 1]}")
+                statements.append(f"unselect-by-id:layer{j}")
+
+            # Overflow layer will mirror the first/last color, depending on the direction.
+            if REVERSE:
+                statements.append("select-by-id:layer0")
+                statements.append(f"object-set-attribute: style, fill:#{color_copy[-1]}")
+                statements.append("unselect-by-id:layer0")
+            else:
+                statements.append("select-by-id:layer8")
+                statements.append(f"object-set-attribute: style, fill:#{color_copy[0]}")
+                statements.append("unselect-by-id:layer8")
+    
+        shift_amount = t_amount % segment_length
+        # Translate by remainder
+        for j in range(start, end):
+            statements.append(f"select-by-id:layer{j}")
+            if REVERSE:
+                statements.append(f"transform-translate:{shift_amount},-{shift_amount}")
+            else:
+                statements.append(f"transform-translate:-{shift_amount},{shift_amount}")
+            statements.append(f"unselect-by-id:layer{j}")
+
+        # Perform intersections
+        for j in range(start, end):
+            statements.append(f"select-by-id:layer{j}")
+            statements.append(f"select-by-id:hourglass{j}")
+            statements.append("path-intersection")
+            statements.append(f"unselect-by-id:layer{j}")
+
+        if i > 0:
+            statements.append(f"export-filename:{CURSOR_NAME}-{i}.svg")
+        else:
+            statements.append(f"export-filename:{CURSOR_NAME}.svg")
+        statements += export_statements
+
+        subprocess.run(["inkscape", f"--actions={delimiter.join(statements)}", template], check=True)
+
 def write_metadata(total_frames, delay):
     # We will insert milliseconds in between frames to make up for lost time and get closer to our declared duration
     denom = round(1/((1000 / FRAME_RATE) - delay), 4)
     ins_buffer = 1
     frame_list = range(1, total_frames)
     header = ""
-    if REVERSE:
-        frame_list = range(total_frames - 1, 0, -1)
-    if (not CURSOR_NAME in headers):
-        raise Exception("Invalid cursor. Make sure you have defined the header info")
-    with open("meta.hl", "w") as f:
-        f.write(headers[CURSOR_NAME])
-        # Write reference SVG first
-        f.write("define_size = 0, " + CURSOR_NAME + ".svg, " + str(delay) +"\n")
+    if (ENVIRONMENT == "hyprland"):
+        if (not CURSOR_NAME in hypr_headers):
+            raise Exception("Invalid cursor. Make sure you have defined the header info")
+        with open("meta.hl", "w") as f:
+            f.write(headers[CURSOR_NAME])
+            # Write reference SVG first
+            f.write("define_size = 0, " + CURSOR_NAME + ".svg, " + str(delay) +"\n")
+            for i in frame_list:
+                final_delay = delay
+                ins_buffer += 1
+                if (ins_buffer >= denom):
+                    ins_buffer -= denom
+                    final_delay += 1
+                f.write("define_size = 0, " + CURSOR_NAME + "-" + str(i) + ".svg, " + str(final_delay) +"\n")
+    elif (ENVIRONMENT == "plasma"):
+        frame_dict = {
+            "filename": f"{CURSOR_NAME}.svg",
+            "nominal_size": 24,
+            "hotspot_x": 0,
+            "hotspot_y": 0,
+            "delay": delay
+        }
+        frames = [frame_dict]
         for i in frame_list:
             final_delay = delay
             ins_buffer += 1
             if (ins_buffer >= denom):
                 ins_buffer -= denom
                 final_delay += 1
-            f.write("define_size = 0, " + CURSOR_NAME + "-" + str(i) + ".svg, " + str(final_delay) +"\n")
+            new_frame = deepcopy(frame_dict)
+            new_frame["filename"] = f"{CURSOR_NAME}-{i}.svg"
+            new_frame["delay"] = final_delay
+            frames.append(new_frame)
+        with open("metadata.json", "w") as f:
+            f.write(json.dumps(frames))
+        
+def optimize_frames(total_frames):
+    scour = ["scour", f"{CURSOR_NAME}.svg", f"{CURSOR_NAME}-o.svg", "--set-precision=4", 
+    "--strip-xml-prolog", "--remove-titles", "--remove-description",
+    "--remove-metadata", "--remove-descriptive-elements", 
+    "--enable-comment-stripping", "--no-line-breaks", "--strip-xml-space", 
+    "--enable-id-stripping", "--shorten-ids"]
+
+    subprocess.run(scour, check=True)
+    remove(f"{CURSOR_NAME}.svg")
+    rename(f"{CURSOR_NAME}-o.svg", f"{CURSOR_NAME}.svg")
+
+    for i in range(1, total_frames):
+        scour[1] = f"{CURSOR_NAME}-{i}.svg"
+        scour[2] = f"{CURSOR_NAME}-{i}o.svg"
+        subprocess.run(scour, check=True)
+        remove(f"{CURSOR_NAME}-{i}.svg")
+        rename(f"{CURSOR_NAME}-{i}o.svg", f"{CURSOR_NAME}-{i}.svg")
+
+def convert_to_svg_tiny(total_frames):
+    SVGTINYPS_PATH = "../../svgtinyps"
+    svgtinyps = [SVGTINYPS_PATH, "convert", f"{CURSOR_NAME}.svg", f"{CURSOR_NAME}-b.svg", "--title=\"Posy's Cursor\""]
+    
+    subprocess.run(svgtinyps, check=True)
+    remove(f"{CURSOR_NAME}.svg")
+    rename(f"{CURSOR_NAME}-b.svg", f"{CURSOR_NAME}.svg")
+
+    for i in range(1, total_frames):
+        svgtinyps[2] = f"{CURSOR_NAME}-{i}.svg"
+        svgtinyps[3] = f"{CURSOR_NAME}-{i}b.svg"
+        subprocess.run(svgtinyps, check=True)
+        remove(f"{CURSOR_NAME}-{i}.svg")
+        rename(f"{CURSOR_NAME}-{i}b.svg", f"{CURSOR_NAME}-{i}.svg")
 
 def main():
-    original = generate_positions()
     total_frames = math.ceil(DURATION * FRAME_RATE / 1000)
     delay = math.floor(1000 / FRAME_RATE)
     print("Frames to generate:", total_frames)
     print("Calculated delay:", delay)
 
-    pre_stops, post_stops = copy_svg_data(CURSOR_NAME + ".svg")
-    generate_frames(original, total_frames, pre_stops, post_stops)
-
+    generate_frames(total_frames)
+    
     print("Writing to metadata file")
     write_metadata(total_frames, delay)
+
+    print("Optimizing SVG files")
+    optimize_frames(total_frames)
+
+    if (ENVIRONMENT == "plasma"):
+        print("Converting frames to SVG Tiny 1.2 (BIMI P/S)")
+        convert_to_svg_tiny(total_frames)
 
 main()
