@@ -15,7 +15,7 @@ CURSOR_SIZE=24
 # ensure the cursor size is consistent.
 TAIL_CURSORS=("alias" "context-menu" "copy" "help" "no-drop" "progress")
 TAIL_ICON_SIZE=32
-SCALES="100 125 150 175"
+SCALES="75 100 125 150 175"
 
 ## START OF SCRIPT
 echo "Select a cursor theme to generate rasters and aliases:"
