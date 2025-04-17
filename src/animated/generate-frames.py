@@ -12,7 +12,7 @@ FRAME_RATE = 30
 REVERSE = True # Posy's animation goes in the opposite direction of the gradient
 CURSOR_NAME = "progress"
 MONO = False
-ENVIRONMENT = "plasma"
+ENVIRONMENT = "plasma" # "plasma" or "hyprland"
 
 colors = [  "c000ff", # purple 
             "0066ff", # blue
@@ -32,18 +32,18 @@ if CURSOR_NAME == "progress":
     segment_length = hypotenuse / 7
     
 hypr_headers = {
-"watch":'''resize_algorithm = none
+"wait":'''resize_algorithm = none
 hotspot_x = 0
 hotspot_y = 0
-define_override = wait
+define_override = watch
 
 ''',
-"background":'''resize_algorithm = none
+"progress":'''resize_algorithm = none
 hotspot_x = 0
 hotspot_y = 0
 define_override = half_busy
 define_override = left_ptr_watch
-define_override = progress
+define_override = background
 
 '''}
 
@@ -204,18 +204,19 @@ def write_metadata(total_frames, delay):
     header = ""
     if (ENVIRONMENT == "hyprland"):
         if (not CURSOR_NAME in hypr_headers):
-            raise Exception("Invalid cursor. Make sure you have defined the header info")
+            raise Exception("Invalid cursor. Make sure you have selected the proper cursor name.")
         with open("meta.hl", "w") as f:
-            f.write(headers[CURSOR_NAME])
+            f.write(hypr_headers[CURSOR_NAME])
             # Write reference SVG first
-            f.write("define_size = 0, " + CURSOR_NAME + ".svg, " + str(delay) +"\n")
+            f.write(f"define_size = 0, {CURSOR_NAME}.svg, {delay}\n")
             for i in frame_list:
+                fi = str(i).zfill(num_digits)
                 final_delay = delay
                 ins_buffer += 1
                 if (ins_buffer >= denom):
                     ins_buffer -= denom
                     final_delay += 1
-                f.write("define_size = 0, " + CURSOR_NAME + "-" + str(i) + ".svg, " + str(final_delay) +"\n")
+                f.write(f"define_size = 0, {CURSOR_NAME}-{fi}.svg, {final_delay}\n")
     elif (ENVIRONMENT == "plasma"):
         frame_dict = {
             "filename": f"{CURSOR_NAME}.svg",
