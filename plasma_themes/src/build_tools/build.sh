@@ -53,9 +53,9 @@ echo -e "\033[0KChecking Requirements... DONE"
 
 echo -ne "Making Folders... \\r"
 for scale in $SCALES; do
-	mkdir -p "build/x$scale"
+	mkdir -p "build_${VARIANT}/x$scale"
 done
-mkdir -p "build/config"
+mkdir -p "build_${VARIANT}/config"
 echo -e "\033[0KMaking Folders... DONE";
 
 echo "Generating pixmaps..."
@@ -75,7 +75,7 @@ for SVG in `find $CURSOR_DIR -iname "*.svg"`; do
 	done
 
 	for scale in $SCALES; do
-		DIR="build/x${scale}"
+		DIR="build_${VARIANT}/x${scale}"
 		if [[ "${DIR}/${BASENAME}.png" -ot ${SVG} ]]; then
 			genPixmaps="${genPixmaps} export-width:$((${ACTUAL_SIZE}*scale/100)); export-height:$((${ACTUAL_SIZE}*scale/100)); export-filename:${DIR}/${BASENAME}.png; export-do;"
 		fi
@@ -95,7 +95,7 @@ OUTPUT="$VAR_DIR/cursors"
 if [[ ! -d "${OUTPUT}" ]]; then
 	mkdir $OUTPUT
 fi
-$BIN_DIR/generate_cursors ${CURSOR_DIR} "build" ${OUTPUT} ${SCALES}
+$BIN_DIR/generate_cursors ${CURSOR_DIR} "build_${VARIANT}" ${OUTPUT} ${SCALES}
 echo "Generating cursor theme... DONE"
 
 echo -ne "Generating shortcuts...\\r"
