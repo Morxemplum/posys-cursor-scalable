@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 
 BIN_DIR="$( dirname "${BASH_SOURCE[0]}" )"
 THEMES_DIR="../.."
 SRC_DIR="$THEMES_DIR/src"
-# TODO: Make this easily interchangable with the different variants
-VAR_DIR="$THEMES_DIR/posys_cursor_scalable"
-CURSOR_DIR="$VAR_DIR/cursors_scalable"
+THEME=""
+THEMES=("posys_cursor_scalable" "posys_cursor_scalable_black" "posys_cursor_scalable_mono" "posys_cursor_scalable_mono_black")
+VARIANTS=("white" "black" "mono" "mono_black")
 ALIASES="$SRC_DIR/alias.list"
 
 CURSOR_SIZE=24
@@ -17,9 +17,25 @@ TAIL_CURSORS=("alias" "context-menu" "copy" "help" "no-drop" "progress")
 TAIL_ICON_SIZE=32
 SCALES="100 125 150 175"
 
+## START OF SCRIPT
+echo "Select a cursor theme to generate rasters and aliases:"
+echo ""
+echo "1. Default (White)"
+echo "2. Black"
+echo "3. Mono"
+echo "4. Mono Black"
+echo ""
+echo -n "Answer (1 2 3 4): "
+read THEME
+THEME=$(expr $THEME - 1)
+
+VAR_DIR="$THEMES_DIR/${THEMES[$THEME]}"
+CURSOR_DIR="$VAR_DIR/cursors_scalable"
+VARIANT="${VARIANTS[$THEME]}"
+
 echo -ne "Checking Requirements...\\r"
 if [[ ! -d "${CURSOR_DIR}" ]]; then
-	echo -e "\\nFAIL: Missing cursor theme"
+	echo -e "\\nFAIL: Missing \"${VARIANT}\" cursor theme"
 	exit 1
 fi
 
