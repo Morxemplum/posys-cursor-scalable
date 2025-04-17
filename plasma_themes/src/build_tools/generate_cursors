@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+
+import sys
+import math
+import re
+import subprocess
+import shutil
+import json
+from pathlib import Path
+
+# Displace the hotspot to the right and down by 1/100th of a pixel, then
+# floor. So if by some float error the hotspot is at 4.995, it will be
+# displaced to 5.005, then floored to 5. This is to prevent the hotspot
+# from potential off-by-one errors when the cursor is scaled.
+HOTSPOT_DISPLACE = 1
+
+if len(sys.argv) <= 4:
+    print("Usage: " + sys.argv[0] + " <scalable_cursors_dir> <pixmap dir> <xcursor output dir> <scales>")
+    sys.exit(1)
+
+scalable_cursors_dir = Path(sys.argv[1])
+pixmap_dir = Path(sys.argv[2])
+xcursor_output_dir = Path(sys.argv[3])
+scales = [int(i) for i in sys.argv[4:]]
+
+cursor_dirs = [d for d in scalable_cursors_dir.iterdir() if d.is_dir()]
+processed_svgs : set = set()
+for d in cursor_dirs:
+    # Get the primary SVG file
+    svg_files = list(d.glob("*.svg"))
+    if len(svg_files) == 0:
+        raise FileNotFoundError("Couldn't find an SVG for the cursor.")
+    elif len(svg_files) > 1:
+        # For some strange reason, the sort will put the first frame last, so we need to fix this
+        svg_files.sort()
+        svg_files.insert(0, svg_files.pop())
+    svg = svg_files[0]
+
+    if svg in processed_svgs:
+        continue
+    processed_svgs.add(svg)
+
+    # This means the cursor is animated
+    if len(svg_files) > 1:
+        processed_svgs.update(svg_files)
+
+    basename = svg.stem
+    basename = re.sub(r"-[0-9_]*$", "", basename)
+    print(f"   {basename}")
+
+    # Get the configuration file and fetch some essential properties
+    config_file = list(d.glob("metadata.json"))[0]
+    nominal_size = None
+    hotspot_x = None
+    hotspot_y = None
+    delays = []
+    with config_file.open() as f:
+        # Should ideally be a list, with how KDE Plasma specifies their configuration
+        j = json.load(f)
+        if len(j) == 0:
+            raise IndexError("Missing Cursor Metadata")
+        conf = j[0]
+        nominal_size = conf["nominal_size"]
+        hotspot_x = conf["hotspot_x"]
+        hotspot_y = conf["hotspot_y"]
+        # Get the delays for animated cursors
+        if len(j) > 1:
+            if len(j) != len(svg_files):
+                raise IndexError(f"Length mismatch occurred between config ({len(j)}) and frame amount ({len(svg_files)}). Check to see if you have any missing configurations or extra frames")
+            for frame in j:
+                delays.append(frame["delay"])
+    # Generate xcursor
+    xcursor_config_path = pixmap_dir / "config" / f"{basename}.config"
+    with open(xcursor_config_path, "w") as config:
+        for scale in scales:
+            actual_size = math.floor(nominal_size * scale / 100)
+            hx = max(0, math.floor((hotspot_x * scale + HOTSPOT_DISPLACE) / 100))
+            hy = max(0, math.floor((hotspot_y * scale + HOTSPOT_DISPLACE) / 100))
+            # Is the cursor animated?
+            if len(svg_files) == 1:
+                config.write(f"{actual_size} {hx} {hy} x{scale}/{basename}.png\n")
+            else:
+                index = 0
+                for i in svg_files:
+                    t = i.stem
+                    config.write(f"{actual_size} {hx} {hy} x{scale}/{t}.png {delays[index]}\n")
+                    index += 1
+            
+    subprocess.run(["xcursorgen", "-p", pixmap_dir, xcursor_config_path, xcursor_output_dir / basename], check=True)

@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="24"
+   height="24"
+   viewBox="0 0 24 24"
+   sodipodi:docname="hourglass-template.svg"
+   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#646464"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="16"
+     inkscape:cx="11.78125"
+     inkscape:cy="10.03125"
+     inkscape:window-width="2560"
+     inkscape:window-height="1374"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1"
+     showguides="true">
+    <inkscape:page
+       x="0"
+       y="0"
+       inkscape:label="1"
+       id="page1"
+       width="24"
+       height="24"
+       margin="112.708 146.66667 44.262665 157.33333"
+       bleed="0"
+       inkscape:export-filename="../../../Pictures/posys-cursor-watch (efficient).svg"
+       inkscape:export-xdpi="163.84"
+       inkscape:export-ydpi="163.84" />
+    <sodipodi:guide
+       position="12,12"
+       orientation="1,0"
+       id="guide1"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="15.35875,11.999387"
+       orientation="1,0"
+       id="guide2"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="8.64,11.999387"
+       orientation="1,0"
+       id="guide3"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
+  <path
+     style="display:inline;opacity:1;fill:#ffffff;fill-opacity:1;stroke-width:0.464"
+     d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
+     id="hourglass_fill"
+     sodipodi:nodetypes="ccccccc"
+     inkscape:label="hourglass" />
+  <path
+     style="fill:#c000ff"
+     d="m -8.5761719,8.5742188 -3.4296871,3.4296872 24,24 3.429687,-3.429687 z"
+     id="layer1"
+     inkscape:label="violet" />
+  <path
+     style="fill:#0066ff"
+     d="M -5.1464844,5.1445312 -8.5742188,8.5742188 15.425781,32.574219 18.853516,29.144531 Z"
+     id="layer2"
+     inkscape:label="indigo" />
+  <path
+     style="fill:#00baff"
+     d="M -1.7148437,1.7148437 -5.1445312,5.1445312 18.855469,29.144531 22.285156,25.714844 Z"
+     id="layer3"
+     inkscape:label="blue" />
+  <path
+     style="fill:#46f609"
+     d="M 1.7148437,-1.7148437 -1.7148437,1.7148437 22.285156,25.714844 25.714844,22.285156 Z"
+     id="layer4"
+     inkscape:label="green" />
+  <path
+     style="fill:#fffc00"
+     d="M 5.1445312,-5.1445312 1.7148437,-1.7148437 25.714844,22.285156 29.144531,18.855469 Z"
+     id="layer5"
+     inkscape:label="yellow" />
+  <path
+     style="fill:#fea002"
+     d="M 8.5742188,-8.5742188 5.1445312,-5.1464844 29.144531,18.853516 32.574219,15.425781 Z"
+     id="layer6"
+     inkscape:label="orange" />
+  <path
+     style="fill:#fe002e"
+     d="M 12.003906,-12.005859 8.5742188,-8.5761719 32.574219,15.423828 36.003906,11.994141 Z"
+     id="layer7"
+     inkscape:label="red" />
+  <path
+     style="fill:#fe002e"
+     d="m -12.006313,12.004 -3.429687,3.429687 24,24 3.429687,-3.429687 z"
+     id="layer0"
+     inkscape:label="overlay2" />
+  <path
+     style="fill:#c000ff;fill-opacity:1"
+     d="m 15.433687,-15.436 -3.429687,3.429687 24,24 L 39.433687,8.564 Z"
+     id="layer8"
+     inkscape:label="overlay1" />
+  <path
+     style="display:inline;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
+     d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
+     id="hourglass1"
+     sodipodi:nodetypes="ccccccc"
+     inkscape:label="hourglass1" />
+  <path
+     style="display:none;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
+     d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
+     id="hourglass2"
+     sodipodi:nodetypes="ccccccc"
+     inkscape:label="hourglass2" />
+  <path
+     style="display:none;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
+     d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
+     id="hourglass3"
+     sodipodi:nodetypes="ccccccc"
+     inkscape:label="hourglass3" />
+  <path
+     style="display:none;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
+     d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
+     id="hourglass4"
+     sodipodi:nodetypes="ccccccc"
+     inkscape:label="hourglass4" />
+  <path
+     style="display:none;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
+     d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
+     id="hourglass5"
+     sodipodi:nodetypes="ccccccc"
+     inkscape:label="hourglass5" />
+  <path
+     style="display:none;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
+     d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
+     id="hourglass6"
+     sodipodi:nodetypes="ccccccc"
+     inkscape:label="hourglass6" />
+  <path
+     style="display:none;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
+     d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
+     id="hourglass7"
+     sodipodi:nodetypes="ccccccc"
+     inkscape:label="hourglass7" />
+  <path
+     style="display:none;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
+     d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
+     id="hourglass8"
+     sodipodi:nodetypes="ccccccc"
+     inkscape:label="hourglass8" />
+  <path
+     style="display:none;opacity:1;fill:#906545;fill-opacity:1;stroke-width:0.464"
+     d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
+     id="hourglass0"
+     sodipodi:nodetypes="ccccccc"
+     inkscape:label="hourglass0" />
+</svg>

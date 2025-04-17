@@ -1,0 +1,122 @@
+# ALIAS FORMAT
+# TO : FROM
+
+# Weird system-level cursor names
+
+00000000000000020006000e7e9ffc3f progress
+00008160000006810000408080010102 ns-resize
+03b6e0fcb3499374a867c041f52298f0 not-allowed
+08e8e1c95fe2fc01f976f1e063a24ccd progress
+3ecb610c1bf2410f44200f48c40d3599 progress
+5c6cd98b3f3ebcb1f9c7f1c204630408 help
+9d800788f1b08800ae810202380a0822 pointer
+640fb0e74195791501fd1ed57b41487f alias
+1081e37283d90000800003c07f3ef6bf copy
+3085a0e285430894940527032f8b26df alias
+# dnd-move is "closedhand" which does not currently exist
+# 4498f0e0c1937ffe01fd06f973665830 dnd-move
+6407b0e94181790501fd1e167b474872 copy
+# 9081237383d90e509aa00f00170e968f dnd-move
+a2a266d0498c3104214a47bd64ab0fc8 alias
+b66166c04f8c3109214a4fbd64a50fc8 copy
+d9ce0ab605698f320427677b458ad60b help
+e29285e634086352946a0e7090d73106 pointer
+# fcf21c00b30f7e3f83fe0dfd12e71cff dnd-move
+
+# Alternative cursor names
+
+arrow default
+circle not-allowed
+# closedhand dnd-move
+cross crosshair
+crossed_circle not-allowed
+dnd-copy copy
+# dnd-none dnd-move
+draft pen
+forbidden not-allowed
+# grab openhand
+# grabbing closedhand
+half-busy progress
+hand1 pointer
+hand2 pointer
+ibeam text
+left_ptr default
+left_ptr_help help
+left_ptr_watch progress
+link alias
+# move dnd-move
+pointing_hand pointer
+question_arrow help
+size_all all-scroll
+tcross crosshair
+top_left_arrow default
+# top_side up-arrow
+watch wait
+whats_this help
+pencil pen
+x-cursor default
+wayland-cursor default
+
+# Resizing aliases
+
+size_hor ew-resize
+size-hor ew-resize
+size_ver ns-resize
+size-ver ns-resize
+size_bdiag nesw-resize
+size-bdiag nesw-resize
+size_fdiag nwse-resize
+size-fdiag nwse-resize
+
+bottom_left_corner nesw-resize
+bottom_right_corner nwse-resize
+top_left_corner nwse-resize
+top_right_corner nesw-resize
+
+h_double_arrow ew-resize
+v_double_arrow ns-resize
+sb_h_double_arrow ew-resize
+sb_v_double_arrow ns-resize
+
+e-resize ew-resize
+n-resize ns-resize
+ne-resize nesw-resize
+nw-resize nwse-resize
+s-resize ns-resize
+se-resize nwse-resize
+sw-resize nesw-resize
+w-resize ew-resize
+
+split_h col-resize
+split_v row-resize
+
+# Fill-in replacements for upcoming cursor designs
+
+cell crosshair
+fleur all-scroll
+dnd-move default
+down-arrow default
+left-arrow default
+right-arrow default
+openhand default
+zoom-in default
+zoom-out default
+
+# Cursors that have existing designs, but are commonly aliased
+# (This is commented out as a TODO to export and fill in actual cursors)
+
+# center_ptr default
+# right_ptr default
+# up-arrow alt
+
+# Aliased cursors that would be interesting to make unique designs for 
+
+color-picker crosshair
+plus cell
+xterm text
+pirate not-allowed
+
+# Nested aliases
+
+right_side right-arrow
+left_side left-arrow
