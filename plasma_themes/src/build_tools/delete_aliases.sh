@@ -13,17 +13,14 @@ if [ ! -d "$SCALABLE_CURSORS" ]; then
     exit 1
 fi
 
-if [ ! -d "$RASTER_CURSORS" ]; then
-    echo "ERROR: Raster cursors directory does not exist."
-    exit 1
+if [ -d "$RASTER_CURSORS" ]; then
+    for folder in `ls ${RASTER_CURSORS}`; do
+        FILE=${RASTER_CURSORS}/${folder}
+        if [ -L $FILE ]; then
+            rm $FILE
+        fi
+    done
 fi
-
-for folder in `ls ${RASTER_CURSORS}`; do
-    FILE=${RASTER_CURSORS}/${folder}
-    if [ -L $FILE ]; then
-        rm $FILE
-    fi
-done
 
 for folder in `ls ${SCALABLE_CURSORS}`; do
     FILE=${SCALABLE_CURSORS}/${folder}
