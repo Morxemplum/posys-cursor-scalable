@@ -11,7 +11,7 @@ DURATION = 2500 # 715 for Mono (2/7 the duration)
 FRAME_RATE = 30
 REVERSE = True # Posy's animation goes in the opposite direction of the gradient
 CURSOR_NAME = "progress"
-# MONO = False
+MONO = False
 ENVIRONMENT = "plasma"
 
 colors = [  "c000ff", # purple 
@@ -22,9 +22,6 @@ colors = [  "c000ff", # purple
             "fea002", # orange
             "ff0030" # red
         ]
-shades = [ "ffffff",
-            "000000"
-]
 
 segment_length = 3.43
 hypotenuse = segment_length * 7
@@ -125,6 +122,79 @@ def generate_frames(total_frames):
 
         subprocess.run(["inkscape", f"--actions={delimiter.join(statements)}", template], check=True)
 
+def generate_frames_mono(total_frames):
+    export_statements = ["export-plain-svg", "export-do", "file-close"]
+    delimiter = ";"
+    num_digits = int(math.log10(total_frames) + 1)
+    start = 1
+    k_start = start + 1
+    end = 8
+
+    template = "mono-template.svg"
+    if CURSOR_NAME == "progress":
+        template = "background-mono-template.svg"
+
+    overflow = 0
+    if REVERSE:
+        k_start = start - 1
+        end -= 1
+        overflow = 8
+
+    begin_statements = [f"select-by-id:layer{overflow}", f"select-by-id:hourglass{overflow}", "delete"]
+
+    mono_hypotenuse = hypotenuse * (2/7)
+
+    for i in range(0, total_frames):
+        print(f"Generating frame {str(i).zfill(num_digits)}")
+        statements = deepcopy(begin_statements)
+        t_amount = i/total_frames * mono_hypotenuse
+
+        cull_layers = range(start, end + 1, 2)
+        keep_layers = range(k_start, end + 1, 2)
+
+        # Detemine the layers to be culled
+        if t_amount >= segment_length:
+            cull_layers, keep_layers = keep_layers, cull_layers
+        
+        # Cull the extra layers
+        for j in cull_layers:
+            statements.append(f"select-by-id:layer{j}")
+            statements.append(f"select-by-id:hourglass{j}")
+            statements.append("delete")
+        
+        shift_amount = t_amount % segment_length
+        # Translate by remainder
+        for j in keep_layers:
+            statements.append(f"select-by-id:layer{j}")
+            if REVERSE:
+                statements.append(f"transform-translate:{shift_amount},-{shift_amount}")
+            else:
+                statements.append(f"transform-translate:-{shift_amount},{shift_amount}")
+            statements.append(f"unselect-by-id:layer{j}")
+
+        # Perform intersections
+        for j in keep_layers:
+            statements.append(f"select-by-id:layer{j}")
+            statements.append(f"select-by-id:hourglass{j}")
+            statements.append("path-intersection")
+            statements.append(f"unselect-by-id:layer{j}")
+
+        # When performing in Reverse, Inkscape-CLI has a bug where the layer0 intersection will move the layer below hourglass_fill, making the intersection not visible
+        # I can not reproduce this issue in the GUI. Performing the intersection in the GUI will keep the resulting layer above hourglass_fill
+        # To get around this, we're going to manually select hourglass_fill and push it to the bottom of the stack.
+        if REVERSE:
+            statements.append("select-by-id:hourglass_fill")    
+            statements.append("selection-bottom")
+        
+        if i > 0:
+            statements.append(f"export-filename:{CURSOR_NAME}-{str(i).zfill(num_digits)}.svg")
+        else:
+            statements.append(f"export-filename:{CURSOR_NAME}.svg")
+        statements += export_statements
+
+        subprocess.run(["inkscape", f"--actions={delimiter.join(statements)}", template], check=True)
+
+
 def write_metadata(total_frames, delay):
     num_digits = int(math.log10(total_frames) + 1)
     # We will insert milliseconds in between frames to make up for lost time and get closer to our declared duration
@@ -205,13 +275,36 @@ def convert_to_svg_tiny(total_frames):
         remove(f"{CURSOR_NAME}-{fi}.svg")
         rename(f"{CURSOR_NAME}-{fi}b.svg", f"{CURSOR_NAME}-{fi}.svg")
 
+def strip_version_header(total_frames):
+    num_digits = int(math.log10(total_frames) + 1)
+    line = ""
+    with open(f"{CURSOR_NAME}.svg", "r") as f:
+        # Ideally with the optimization all the information will be on one line
+        line = f.readline()
+    new_line = line.replace(" version=\"1.1\"", "")
+    with open(f"{CURSOR_NAME}.svg", "w") as f:
+        f.write(new_line)
+
+    for i in range(1, total_frames):
+        fi = str(i).zfill(num_digits)
+        with open(f"{CURSOR_NAME}-{fi}.svg", "r") as f:
+            line = f.readline()
+        new_line = line.replace(" version=\"1.1\"", "")
+        with open(f"{CURSOR_NAME}-{fi}.svg", "w") as f:
+            f.write(new_line)
+        
+
+
 def main():
     total_frames = math.ceil(DURATION * FRAME_RATE / 1000)
     delay = math.floor(1000 / FRAME_RATE)
     print("Frames to generate:", total_frames)
     print("Calculated delay:", delay)
 
-    generate_frames(total_frames)
+    if MONO:
+        generate_frames_mono(total_frames)
+    else:
+        generate_frames(total_frames)
 
     print("Writing to metadata file")
     write_metadata(total_frames, delay)
@@ -220,7 +313,13 @@ def main():
     optimize_frames(total_frames)
 
     if (ENVIRONMENT == "plasma"):
-        print("Converting frames to SVG Tiny 1.2 (BIMI P/S)")
-        convert_to_svg_tiny(total_frames)
+        if MONO:
+            # The gradient that is used to give the mono hourglass its signature shine is Tiny 1.2 compliant, but not BIMI compliant
+            # Since the SVG is already Tiny 1.2 compliant, we'll just strip the version information and have Plasma assume it is Tiny 1.2
+            print("Stripping Version Header from SVGs")
+            strip_version_header(total_frames)
+        else:
+            print("Converting frames to SVG Tiny 1.2 (BIMI P/S)")
+            convert_to_svg_tiny(total_frames)
 
 main()
