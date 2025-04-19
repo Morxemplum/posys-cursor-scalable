@@ -1,5 +1,5 @@
 name = Posys-Cursor-Scalable-Black
-description = Black variant of Posy's Cursors, unrasterized and ported to Hyprcursor.
+description = Black variant of Posy's Cursors, unrasterized and ported to Hyprcursor with additional cursors for the Linux user
 author = Michiel De Boer, Synth Morxemplum
-version = 1.2
+version = 1.3
 cursors_directory = hyprcursors
