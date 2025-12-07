@@ -4,5 +4,6 @@ hotspot_y = 0
 
 define_size = 0, hand1.svg
 
+define_override = grab
 define_override = hand1
 define_override = openhand
