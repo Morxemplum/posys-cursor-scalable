@@ -71,6 +71,10 @@ for SVG in $(find $CURSOR_DIR -iname "*.svg"); do
 	done
 	if [ "$genPixmaps" != "file-open:${SVG};" ]; then
 		inkscape --shell < <(echo "${genPixmaps}") >/dev/null
+		if [ ! -f "${DIR}/${BASENAME}.png" ]; then
+			echo "failed to generate: ${DIR}/${BASENAME}.png"
+			exit 1
+		fi
 	fi
 
 	echo "    $BASENAME... DONE"
