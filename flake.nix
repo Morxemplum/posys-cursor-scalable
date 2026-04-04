@@ -10,19 +10,22 @@
     pkgs = import nixpkgs {
       inherit system;
       config.allowUnfree = true;
+      overlays = [self.overlays.default];
     };
   in {
-    packages.${system}.default = pkgs.callPackage ./package.nix {
-      inherit
-        (pkgs)
-        lib
-        stdenvNoCC
-        inkscape
-        xcursorgen
-        makeFontsConf
-        python3
-        ;
+    packages.${system}.default = pkgs.posy-scalable;
+    overlays.default = final: prev: {
+      posy-scalable = pkgs.callPackage ./package.nix {
+        inherit
+          (pkgs)
+          lib
+          stdenvNoCC
+          inkscape
+          xcursorgen
+          makeFontsConf
+          python3
+          ;
+      };
     };
-    # TODO: overlays.default = ...?
   };
 }
