@@ -49,6 +49,42 @@ hyprctl setcursor Posys-Cursor-Scalable 24
 3. Close any instances of KDE System Settings and open it. Navigate to `Colors & Themes > Cursors`.
 4. Select your installed variant of Posy's Cursor (Scalable), and confirm by clicking "Apply"
 
+### Using the Nix Flake
+For Nix users this repo provides a consumable flake.
+
+Add this repo to your `flake.nix` inputs:
+
+```nix
+{
+    inputs = {
+        nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+        posy-cursor = {
+            url = "github:Morxemplum/posys-cursor-scalable";
+            inputs.nixpkgs.follows = "nixpkgs";
+        };
+        # ...
+    };
+
+    # ...
+}
+```
+
+Then apply the provided overlay to your nixpkgs, which will make `pkgs.posy-scalable` available for you to use. This can then be set however you prefer, the example below will be using [Home Manager](https://github.com/nix-community/home-manager)'s `home.pointerCursor` option.
+
+```nix
+{ inputs, pkgs, ... }: {
+    nixpkgs.overlays = [inputs.posy-cursor.overlays.default];
+    home.pointerCursor = {
+        enable = true;
+        package = pkgs.posy-scalable;
+        name = "posys_cursor_scalable"; # For White (Default)
+        # name = "posys_cursor_scalable_black"; # For Black variant
+        # name = "posys_cursor_scalable_mono"; # For Mono variant
+        # name = "posys_cursor_scalable_mono_black"; For Mono Black variant
+    };
+}
+```
+
 ## "Extra" cursors
 Similar to the original Posy's cursors, this repository has the "extra" cursors that you can swap out some of the regular cursors with. These are completely optional cursors and only exist to offer a degree of customization. Some cursors will require a bit of hyprcursor knowledge in order to swap correctly, but these steps should be able to cover most of them.
 0. If needed, modify and copy over the metadata file for the corresponding custom cursor (otherwise it should be taken care of for you)
