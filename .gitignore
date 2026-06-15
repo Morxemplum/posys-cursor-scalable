@@ -14,3 +14,6 @@ plasma_themes/posys_cursor_scalable_mono/cursors
 plasma_themes/posys_cursor_scalable_mono_black/cursors
 *.tar.gz
 result
+build
+svgtinyps
+__pycache__
