@@ -55,20 +55,21 @@ def dependency_check():
     if not scour:
         raise OSError("Scour not installed")
 
-def bimi_converter_check():
+def bimi_dependency_check():
     '''
     If the user is planning on making a theme for KDE Plasma (KWin), an
-    additional dependency check needs to be run. 
+    additional dependency check needs to be run to ensure that the program
+    needed to make SVGs Qt compatible is installed.
 
     Considering most users are not going to have this program installed, it's
     better that we ask the user if we want to install the program locally on
     their behalf.
     '''
-    svgtinyps: str | None = "./svgtinyps" if os.path.exists("./svgtinyps") else shutil.which("svgtinyps") # As a backup, check for a system-wide installation
+    svgtinyps: str | None = "./svgtinyps" if os.path.exists("./svgtinyps") else None
     if svgtinyps:
         return
     print("KDE Plasma (KWin) themes require an additional dependency to ensure SVGs are compatible with Qt.")
-    print("\"svgtinyps\" is currently not installed on your system and can not be found in the directory.")
+    print("\"svgtinyps\" can not be found in the directory.")
     print("If you made your own installation, please ensure that the program name is stripped down to \"svgtinyps\".\n")
     install_svgtinyps: bool = confirmation_prompt("Install \"svgtinyps\" for the current user? (Requires curl)", ConfirmationDefault.YES)
     if not install_svgtinyps:
@@ -149,6 +150,124 @@ def create_metadata_file(compositor: Compositor, directory: str, cursor: str):
         case _:
             raise Exception("No compositor mentioned or the compositor is unsupported")
 
+def setup_theme_directories(theme_dir: str, compositor: Compositor):
+    '''
+    Compositors will have their own way of structuring their themes. This
+    function creates all of the prerequisite folders to establish theme
+    structure.
+
+    Parameters:
+        theme_dir (str):
+            The file path to the folder that will be holding our cursor theme
+        compositor (Compositor enum):
+            The compositor for which the theme will be structured around
+    '''
+    match(compositor):
+        case Compositor.HYPRLAND:
+            os.makedirs(f"{theme_dir}/hyprcursors", exist_ok=True)
+        case Compositor.KWIN:
+            os.makedirs(f"{theme_dir}/cursors", exist_ok=True)
+            os.makedirs(f"{theme_dir}/cursors_scalable", exist_ok=True)
+        case _:
+            pass
+
+def create_cursor_metadatas(theme_dir: str, compositor: Compositor):
+    for name, cursor in db["cursors"].items():
+        if not cursor["build"]:
+            continue
+        output_dir: str
+        match(compositor):
+            case Compositor.HYPRLAND:
+                output_dir = f"{theme_dir}/hyprcursors/{name}"
+            case Compositor.KWIN:
+                output_dir = f"{theme_dir}/cursors_scalable/{name}"
+            case _:
+                output_dir = f"{theme_dir}/{name}"
+
+        debug(f"Generating metadata for {name}")
+        os.makedirs(output_dir, exist_ok=True)
+        create_metadata_file(compositor, output_dir, name)
+
+def create_plain_svgs(theme_dir: str, compositor: Compositor):
+    for name, cursor in db["cursors"].items():
+        if not cursor["build"]:
+            continue
+        input_file_name: str = f"{cursor.get("src_file", name)}.svg"
+        output_file_name: str = f"{cursor.get("out_file", name)}-plain.svg"
+        file_path: str = f"./src/{input_file_name}"
+        output_dir: str
+        match(compositor):
+            case Compositor.HYPRLAND:
+                output_dir = f"{theme_dir}/hyprcursors/{name}"
+            case Compositor.KWIN:
+                output_dir = f"{theme_dir}/cursors_scalable/{name}"
+            case _:
+                output_dir = f"{theme_dir}/{name}"
+
+        debug(f"Generating Plain SVG for {name}")
+        os.makedirs(output_dir, exist_ok=True)
+        _ = subprocess.run(["inkscape", "--export-type=svg", "--export-plain-svg", f"--export-filename={f"{output_dir}/{output_file_name}"}", file_path])
+
+def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: bool):
+    for name, cursor in db["cursors"].items():
+        if not cursor["build"]:
+            continue
+        plain_svg: str = f"{cursor.get("out_file", name)}-plain.svg"
+        output_file_name = f"{cursor.get("out_file", name)}{"-optimized" if bimi_required and not cursor.get("skip_bimi", False) else ""}.svg"
+        dir: str
+        match(compositor):
+            case Compositor.HYPRLAND:
+                dir = f"{theme_dir}/hyprcursors/{name}"
+            case Compositor.KWIN:
+                dir = f"{theme_dir}/cursors_scalable/{name}"
+            case _:
+                dir = f"{theme_dir}/{name}"
+        
+        debug(f"Optimizing SVG: {plain_svg}")
+        _ = subprocess.run(["scour", f"{dir}/{plain_svg}", f"{dir}/{output_file_name}", "--set-precision=4", "--strip-xml-prolog", "--remove-titles", "--remove-description", "--remove-metadata", "--remove-descriptive-elements", "--enable-comment-stripping", "--indent=tab", "--no-line-breaks", "--strip-xml-space", "--enable-id-stripping", "--shorten-ids"])
+
+def convert_to_qt(theme_dir: str):
+    for name, cursor in db["cursors"].items():
+        if not cursor["build"] or cursor.get("skip_bimi", False):
+            continue
+        optimized_svg: str = f"{cursor.get("out_file", name)}-optimized.svg"
+        output_file_name = f"{cursor.get("out_file", name)}.svg"
+        dir = f"{theme_dir}/cursors_scalable/{name}"
+        
+        debug(f"Converting SVG: {optimized_svg}")
+        _ = subprocess.run(["./svgtinyps", "convert", f"{dir}/{optimized_svg}", f"{dir}/{output_file_name}", f"--title=\"{db['manifest']['name']}\""])
+
+def clean_up_artifacts(theme_dir: str, compositor: Compositor, bimi_converted: bool):
+    for name, cursor in db["cursors"].items():
+        if not cursor["build"]:
+            continue
+        plain_svg = f"{cursor.get("out_file", name)}-plain.svg"
+        match(compositor):
+            case Compositor.HYPRLAND:
+                dir = f"{theme_dir}/hyprcursors/{name}"
+            case Compositor.KWIN:
+                dir = f"{theme_dir}/cursors_scalable/{name}"
+            case _:
+                dir = f"{theme_dir}/{name}"
+        
+        debug(f"Deleting {plain_svg}")
+        _ = subprocess.run(["rm", f"{dir}/{plain_svg}"])
+        if bimi_converted and not cursor.get("skip_bimi", False):
+            optimized_svg = f"{cursor.get("out_file", name)}-optimized.svg"
+            debug(f"Deleting {optimized_svg}")
+            _ = subprocess.run(["rm", f"{dir}/{optimized_svg}"])
+
+def create_alias_sym_links(theme_dir: str):
+    for name, cursor in db["cursors"].items():
+        if not cursor["build"] or (not "aliases" in cursor):
+            continue
+        abs_proc = subprocess.run(["realpath", f"{theme_dir}/cursors_scalable/{name}"], capture_output=True, text=True)
+        abs_dir: str = abs_proc.stdout.strip()
+        for alias in cursor["aliases"]:
+            sym_link: str = f"{theme_dir}/cursors_scalable/{alias}"
+            debug(f"Creating alias \"{alias}\" for \"{cursor}\"")
+            _ = subprocess.run(["ln", "-s", abs_dir, sym_link])
+
 def main():
     comp : Compositor
     procedure_cnt: int = 1
@@ -173,7 +292,7 @@ def main():
             case 2:
                 folder_name = "plasma"
                 comp = Compositor.KWIN
-                bimi_converter_check()
+                bimi_dependency_check()
                 break
             case _:
                 print("Invalid option!\n")
@@ -193,16 +312,9 @@ def main():
     print(f"{procedure_cnt}. Creating appropriate theme directories")
     theme_dir: str = f"./build/{folder_name}"
     os.makedirs(theme_dir, exist_ok=True)
-
-    # Set up additional file directory for compositor themes that operate on a fixed hierarchy
-    match(comp):
-        case Compositor.HYPRLAND:
-            os.makedirs(f"{theme_dir}/hyprcursors", exist_ok=True)
-        case Compositor.KWIN:
-            os.makedirs(f"{theme_dir}/cursors", exist_ok=True)
-            os.makedirs(f"{theme_dir}/cursors_scalable", exist_ok=True)
-    
+    setup_theme_directories(theme_dir, comp)
     procedure_cnt += 1
+
     print(f"{procedure_cnt}. Writing manifest")
 
     # Write theme manifest file
@@ -211,101 +323,37 @@ def main():
             create_hyprland_manifest()
         case Compositor.KWIN:
             create_kwin_manifest()
-
     procedure_cnt += 1
-    print(f"{procedure_cnt}. Generating plain SVGs and metadata files for static cursors")
-    
-    # Generate Plain SVGs and metadata files for non-animated cursors. 
-    # Animated cursors are going to be passed off to custom scripts
-    for name, cursor in db["cursors"].items():
-        if not cursor["build"]:
-            continue
-        input_file_name: str = f"{cursor.get("src_file", name)}.svg"
-        output_file_name: str = f"{cursor.get("out_file", name)}-plain.svg"
-        file_path: str = f"./src/{input_file_name}"
-        output_dir: str
-        match(comp):
-            case Compositor.HYPRLAND:
-                output_dir = f"{theme_dir}/hyprcursors/{name}"
-            case Compositor.KWIN:
-                output_dir = f"{theme_dir}/cursors_scalable/{name}"
 
-        debug(f"Generating Plain SVG and Metadata for: {input_file_name}")
-        os.makedirs(output_dir, exist_ok=True)
-        _ = subprocess.run(["inkscape", "--export-type=svg", "--export-plain-svg", f"--export-filename={f"{output_dir}/{output_file_name}"}", file_path])
-        create_metadata_file(comp, output_dir, name)
-    
+    print(f"{procedure_cnt}. Generating metadata files for static cursors")
+    create_cursor_metadatas(theme_dir, comp)
     procedure_cnt += 1
+
+    print(f"{procedure_cnt}. Generating plain SVGs for static cursors")
+    create_plain_svgs(theme_dir, comp)
+    procedure_cnt += 1
+
     bimi: bool = (comp == Compositor.KWIN)
-
     print(f"{procedure_cnt}. Optimizing SVGs for static cursors")
-
-    # Optimize the plain SVGs using Scour, and to also get our final file name
-    for name, cursor in db["cursors"].items():
-        if not cursor["build"]:
-            continue
-        plain_svg: str = f"{cursor.get("out_file", name)}-plain.svg"
-        output_file_name = f"{cursor.get("out_file", name)}{"-optimized" if bimi and not cursor.get("skip_bimi", False) else ""}.svg"
-        dir: str
-        match(comp):
-            case Compositor.HYPRLAND:
-                dir = f"{theme_dir}/hyprcursors/{name}"
-            case Compositor.KWIN:
-                dir = f"{theme_dir}/cursors_scalable/{name}"
-        
-        debug(f"Optimizing SVG: {plain_svg}")
-        _ = subprocess.run(["scour", f"{dir}/{plain_svg}", f"{dir}/{output_file_name}", "--set-precision=4", "--strip-xml-prolog", "--remove-titles", "--remove-description", "--remove-metadata", "--remove-descriptive-elements", "--enable-comment-stripping", "--indent=tab", "--no-line-breaks", "--strip-xml-space", "--enable-id-stripping", "--shorten-ids"])
-
+    optimize_plain_svgs(theme_dir, comp, bimi)
     procedure_cnt += 1
+
+    # TODO: When we incorporate animated cursors, it'll be done here.
+
     if bimi:
         print(f"{procedure_cnt}. Making SVGs Qt compatible.")
-
-        # For KWin, we must convert the SVGs from 1.1 to Tiny 1.2 (BIMI), as that's what Qt relies on.
-        for name, cursor in db["cursors"].items():
-            if not cursor["build"] or cursor.get("skip_bimi", False):
-                continue
-            optimized_svg: str = f"{cursor.get("out_file", name)}-optimized.svg"
-            output_file_name = f"{cursor.get("out_file", name)}.svg"
-            dir = f"{theme_dir}/cursors_scalable/{name}"
-            
-            debug(f"Converting SVG: {optimized_svg}")
-            _ = subprocess.run(["./svgtinyps", "convert", f"{dir}/{optimized_svg}", f"{dir}/{output_file_name}", f"--title=\"{db['manifest']['name']}\""])
+        convert_to_qt(theme_dir)
         procedure_cnt += 1
 
     print(f"{procedure_cnt}. Removing intermediate SVGs")
-
-    # Delete the plain SVGs (and scoured SVGs, if we had to make them Qt compatible)
-    for name, cursor in db["cursors"].items():
-        if not cursor["build"]:
-            continue
-        plain_svg = f"{cursor.get("out_file", name)}-plain.svg"
-        match(comp):
-            case Compositor.HYPRLAND:
-                dir = f"{theme_dir}/hyprcursors/{name}"
-            case Compositor.KWIN:
-                dir = f"{theme_dir}/cursors_scalable/{name}"
-        
-        debug(f"Deleting {plain_svg}")
-        _ = subprocess.run(["rm", f"{dir}/{plain_svg}"])
-        if bimi and not cursor.get("skip_bimi", False):
-            optimized_svg = f"{cursor.get("out_file", name)}-optimized.svg"
-            debug(f"Deleting {optimized_svg}")
-            _ = subprocess.run(["rm", f"{dir}/{optimized_svg}"])
-
+    clean_up_artifacts(theme_dir, comp, bimi)
     procedure_cnt += 1
-    # For KWin, aliases aren't embedded into the metadata files themselves, but rather as symbolic links in the same folder.
+
     if comp == Compositor.KWIN:
         print(f"{procedure_cnt}. Generating aliases with symbolic links")
-        for name, cursor in db["cursors"].items():
-            if not cursor["build"] or (not "aliases" in cursor):
-                continue
-            abs_proc = subprocess.run(["realpath", f"{theme_dir}/cursors_scalable/{name}"], capture_output=True, text=True)
-            abs_dir: str = abs_proc.stdout.strip()
-            for alias in cursor["aliases"]:
-                sym_link: str = f"{theme_dir}/cursors_scalable/{alias}"
-                debug(f"Creating alias \"{alias}\" for \"{cursor}\"")
-                _ = subprocess.run(["ln", "-s", abs_dir, sym_link])
+        create_alias_sym_links(theme_dir)
         procedure_cnt += 1
+    
     print("All done!")
 
     
