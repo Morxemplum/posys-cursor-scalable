@@ -7,11 +7,14 @@ These structures should have all the information needed to construct metadata
 files for all the cursor designs for various compositors.
 '''
 
-from ast import alias
 import enum
 from typing import NotRequired, TypedDict
 
 class KWinCursor(TypedDict):
+    '''
+    This dictionary resembles a cursor structure that is meant to mimic the
+    KDE Theming formatting for their metadata files.
+    '''
     filename: str
     nominal_size: int
     hotspot_x: float
@@ -19,9 +22,56 @@ class KWinCursor(TypedDict):
     delay: NotRequired[int]
 
 class KWinAnimatedCursor(TypedDict):
+    '''
+    This dictionary resembles a cursor structure that mimics the KDE Theming
+    formatting for metadata files regarding animated cursors (which is a list
+    of different cursor metadatas)
+    '''
     frames: list[KWinCursor]
 
 class CursorDesign(TypedDict):
+    '''
+    This is the internal data structure that I use to contain various metadata
+    to help structure and construct data for the cursors. This formatting 
+    structure is meant to be compositor-agnostic.
+
+    Attributes:
+        src_file (str, Optional):
+            If the name of the Inkscape SVG file does not match the design 
+            name, put the file name here (omitting file extension)
+        out_file (str, Optional):
+            If you wish the final SVG to have a different file name than
+            the design, put the file name here (omitting file extension)
+        aliases (list[str], Optional):
+            The same cursor may be referred to different names by various
+            programs or environments, or you want to fill in a design with
+            an existing one. This list of strings should be all the names
+            the cursor should alias.
+        
+        hotspot (tuple[float, float], Optional):
+            An XY value with values from 0-1 that are indicative of where in
+            the cursor should the actual mouse point be. If no value is
+            provided, this value will default to (0, 0).
+        size (tuple[int, int]):
+            The size of the cursor, in logical pixels.
+        build (bool):
+            Informs the build script whether this cursor is going to be built
+            into the final theme or not.
+        skip_bimi (bool, Optional):
+            If set to True, will skip conversion for Qt compatibility. Defaults
+            to False. 
+            
+            WARNING: Do not have cursors skip BIMI conversion unless you can
+            verify that the SVG files are compliant with 1.2 Tiny. This should
+            be treated as a last resort!
+
+        total_frames (int, optional):
+            If this is an animated cursor, this functionally lists how many
+            frames will be in the cursor
+        animated_speed (int, optional):
+            If this is an animated cursor, this specifies a fixed framerate for
+            the cursor, in frames per second. 
+    '''
     src_file: NotRequired[str]
     out_file: NotRequired[str]
     aliases: NotRequired[list[str]]
@@ -35,6 +85,26 @@ class CursorDesign(TypedDict):
     animation_speed: NotRequired[int]
 
 class CursorManifest(TypedDict):
+    '''
+    This is the internal data structure that is to be used to give all the info
+    about the cursor theme. This information is used when accessing and
+    applying themes for the user.
+
+    Attributes:
+        name (str):
+            The name of the theme itself
+        tags (list[str]):
+            The list of tags that disclose what has been modified about the 
+            theme from its stock settings.
+        description (str):
+            Description of what the theme is about.
+        authors (list[str]):
+            List of authors involved in making the cursor theme.
+        version (str):
+            A simplistic string detailing the version of the theme. Reminder
+            that this theme doesn't receive frequent updates, so semantic 
+            versioning is not a requirement.
+    '''
     name: str
     tags: list[str]
     description: str
@@ -42,17 +112,36 @@ class CursorManifest(TypedDict):
     version: str
 
 class ThemeColor(enum.IntEnum):
+    '''
+    This enum is useful for distinguishing the different variants (or colors)
+    offered by this theme.
+    '''
     WHITE = 0
     BLACK = 1
     MONO = 2
     MONO_BLACK = 3
 
 class Compositor(enum.Enum):
+    '''
+    This includes all of the Wayland compositors that support vector cursors.
+    '''
     UNSUPPORTED = ""
     HYPRLAND = "hyprland"
     KWIN = "plasma"
 
 class CursorCollection(TypedDict):
+    '''
+    Structure for the overall cursor database.
+
+    Attributes:
+        manifest (CursorManifest):
+            The manifest of the theme
+        cursors (dict[str, CursorDesign]):
+            The full collection of cursor design information, keyed to their 
+            design name
+        theme (ThemeColor):
+            The color of the theme.
+    '''
     manifest: CursorManifest
     cursors: dict[str, CursorDesign]
     theme: ThemeColor
