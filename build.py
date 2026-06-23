@@ -7,6 +7,9 @@ import subprocess
 from src.cursors_data import CursorManifest, KWinCursor, Compositor, CursorDesign, kwin_nominal_size, db
 
 class ConfirmationDefault(enum.IntEnum):
+    '''
+    Useful enum to have to intuitively understand values for Yes/No prompts
+    '''
     NONE = 0
     YES = 1
     NO = 2
@@ -91,6 +94,17 @@ def bimi_dependency_check():
         _ = subprocess.run(["chmod", "a+x", "./svgtinyps"])
 
 def create_hyprland_metadata(directory: str, cursor: str):
+    '''
+    Writes a metadata file for a cursor following the Hyprcursor metadata
+    format.
+
+    Parameters:
+        directory (str):
+            The file path to the directory of our scalable cursor
+        cursor (str):
+            The direct name of the cursor that correlates to a key in the
+            database
+    '''
     data: CursorDesign = db['cursors'][cursor]
     with open(f"{directory}/meta.hl", "w") as f:
         # We link to the cursor file through defining size
@@ -110,6 +124,9 @@ def create_hyprland_metadata(directory: str, cursor: str):
             _ = f.write(f"define_override = {alias}\n")
 
 def create_hyprland_manifest():
+    '''
+    Writes the theme manifest following the Hyprcursor manifest format.
+    '''
     manifest: CursorManifest = db["manifest"]
     with open("./build/hyprcursor/manifest.hl", "w") as f:
         # TODO: Incorporate tags into the name
@@ -120,6 +137,16 @@ def create_hyprland_manifest():
         _ = f.write("cursors_directory = hyprcursors\n")
 
 def create_kwin_metadata(directory: str, cursor: str):
+    '''
+    Writes a metadata file for a cursor following the KDE metadata format.
+
+    Parameters:
+        directory (str):
+            The file path to the directory of our scalable cursor
+        cursor (str):
+            The direct name of the cursor that correlates to a key in the
+            database
+    '''
     data: CursorDesign = db['cursors'][cursor]
     nominal_size: int = kwin_nominal_size(cursor)
     hotspot: tuple[float, float] = data.get("hotspot", (0, 0))
@@ -134,6 +161,9 @@ def create_kwin_metadata(directory: str, cursor: str):
         json.dump([staging], f)
 
 def create_kwin_manifest():
+    '''
+    Writes the theme manifest following the KDE theming format.
+    '''
     manifest: CursorManifest = db["manifest"]
     with open("./build/plasma/index.theme", "w") as f:
         _ = f.write(f"[Icon Theme]\n")
@@ -142,6 +172,9 @@ def create_kwin_manifest():
         _ = f.write(f"Comment={manifest.get("description")}. Version {manifest.get("version")}. Created by {", ".join(manifest.get("authors"))}.\n")
 
 def create_metadata_file(compositor: Compositor, directory: str, cursor: str):
+    '''
+    General function that will create the metadata file for a cursor
+    '''
     match(compositor):
         case Compositor.HYPRLAND:
             create_hyprland_metadata(directory, cursor)
@@ -172,6 +205,16 @@ def setup_theme_directories(theme_dir: str, compositor: Compositor):
             pass
 
 def create_cursor_metadatas(theme_dir: str, compositor: Compositor):
+    '''
+    Creates all of the metadata files for the cursors that will be built with
+    the theme.
+
+    Parameters:
+        theme_dir (str):
+            The file path to the folder that will be holding our cursor theme
+        compositor (Compositor enum):
+            The compositor for which the theme is structured around
+    '''
     for name, cursor in db["cursors"].items():
         if not cursor["build"]:
             continue
@@ -189,6 +232,16 @@ def create_cursor_metadatas(theme_dir: str, compositor: Compositor):
         create_metadata_file(compositor, output_dir, name)
 
 def create_plain_svgs(theme_dir: str, compositor: Compositor):
+    '''
+    Creates all of the Plain SVGs from the Inkscape/Source SVGs, stripping
+    Inkscape data and (soon) applying theming to the user's preference.
+
+    Parameters:
+        theme_dir (str):
+            The file path to the folder that will be holding our cursor theme
+        compositor (Compositor enum):
+            The compositor for which the theme is structured around
+    '''
     for name, cursor in db["cursors"].items():
         if not cursor["build"]:
             continue
@@ -209,6 +262,20 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
         _ = subprocess.run(["inkscape", "--export-type=svg", "--export-plain-svg", f"--export-filename={f"{output_dir}/{output_file_name}"}", file_path])
 
 def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: bool):
+    '''
+    Takes all of the Plain SVGs and optimizes them using the Scour program.
+    Applies aggressive optimizations to try and ensure the lowest file size
+    possible.
+
+    Parameters:
+        theme_dir (str):
+            The file path to the folder that will be holding our cursor theme
+        compositor (Compositor enum):
+            The compositor for which the theme is structured around
+        bimi_required (bool):
+            Whether BIMI conversion will be done later. If true, the output
+            file name will be appended to be considered a temp file.
+    '''
     for name, cursor in db["cursors"].items():
         if not cursor["build"]:
             continue
@@ -227,6 +294,19 @@ def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: b
         _ = subprocess.run(["scour", f"{dir}/{plain_svg}", f"{dir}/{output_file_name}", "--set-precision=4", "--strip-xml-prolog", "--remove-titles", "--remove-description", "--remove-metadata", "--remove-descriptive-elements", "--enable-comment-stripping", "--indent=tab", "--no-line-breaks", "--strip-xml-space", "--enable-id-stripping", "--shorten-ids"])
 
 def convert_to_qt(theme_dir: str):
+    '''
+    KWin uses Qt for its graphics framework. Qt does not support the full SVG
+    specification, but a subset of it called "1.2 Tiny". This function utilizes
+    a program called "svgtinyps", which checks and applies changes to SVGs to
+    follow SVG P/S, a stricter subset that is valid 1.2 Tiny.
+
+    Keep in mind that cursors that have "skip_bimi" set to True will ignore this
+    conversion.
+
+    Parameters:
+        theme_dir (str):
+            The file path to the folder that will be holding our cursor theme
+    '''
     for name, cursor in db["cursors"].items():
         if not cursor["build"] or cursor.get("skip_bimi", False):
             continue
@@ -238,6 +318,20 @@ def convert_to_qt(theme_dir: str):
         _ = subprocess.run(["./svgtinyps", "convert", f"{dir}/{optimized_svg}", f"{dir}/{output_file_name}", f"--title=\"{db['manifest']['name']}\""])
 
 def clean_up_artifacts(theme_dir: str, compositor: Compositor, bimi_converted: bool):
+    '''
+    Cleans up all of the temporary SVGs that were created in the process of
+    creating the final SVGs for the theme, deleting them permanently.
+
+    Parameters:
+        theme_dir (str):
+            The file path to the folder that is holding our cursor theme
+        compositor (Compositor enum):
+            The compositor for which the theme is structured around
+        bimi_converted (bool):
+            Whether BIMI conversion was done. If True, it will clean up
+            optimized, but unconverted SVGs (except if it has been flagged to
+            skip the conversion).
+    '''
     for name, cursor in db["cursors"].items():
         if not cursor["build"]:
             continue
@@ -258,6 +352,15 @@ def clean_up_artifacts(theme_dir: str, compositor: Compositor, bimi_converted: b
             _ = subprocess.run(["rm", f"{dir}/{optimized_svg}"])
 
 def create_alias_sym_links(theme_dir: str):
+    '''
+    KDE Themes do not have their aliases listed in the metadata files, but
+    rather through symbolic links. This function runs the processes to create
+    the symbolic links for the aliases.
+
+    Parameters:
+        theme_dir (str):
+            The file path to the folder that is holding our cursor theme
+    '''
     for name, cursor in db["cursors"].items():
         if not cursor["build"] or (not "aliases" in cursor):
             continue
