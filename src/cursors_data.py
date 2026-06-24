@@ -444,19 +444,24 @@ db : CursorCollection = {
         },
 
         # TODO: As part of theming, skin tones will be integrated directly in the original designs where they apply
+        # Light: eed9caff
+        # Medium: caae99ff
+        # Dark: 906545ff
 
         ### EXTRA CURSORS
 
-        "person": {
+        "social-person": {
             "build": False,
+            "out_file": "person",
             "hotspot": (0.253, 0),
-            "size": (32, 32)
+            "size": (28, 28)
         },
 
-        "pin": {
+        "map-pin": {
             "build": False,
+            "out_file": "pin",
             "hotspot": (0.253, 0),
-            "size": (32, 32)
+            "size": (28, 28)
         }
     }
 }
