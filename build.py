@@ -368,6 +368,9 @@ def create_alias_sym_links(theme_dir: str):
         abs_dir: str = abs_proc.stdout.strip()
         for alias in cursor["aliases"]:
             sym_link: str = f"{theme_dir}/cursors_scalable/{alias}"
+            # Do not recreate the symlink if it already exists, otherwise we will get errors
+            if os.path.islink(sym_link):
+                continue
             debug(f"Creating alias \"{alias}\" for \"{cursor}\"")
             _ = subprocess.run(["ln", "-s", abs_dir, sym_link])
 
