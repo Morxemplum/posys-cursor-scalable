@@ -2,6 +2,7 @@ import enum
 from logging import debug
 import json
 import os
+import re
 import shutil
 import subprocess
 from src.cursors_data import CursorManifest, KWinCursor, Compositor, CursorDesign, kwin_nominal_size, db
@@ -45,6 +46,106 @@ def confirmation_prompt(prompt: str, default: ConfirmationDefault = Confirmation
                             print("\nThis prompt requires an answer!")
                 else:
                     print("\nInvalid answer!")
+
+def select_prompt(prompt: str, option_labels: list[str]) -> int:
+    '''
+    A specific type of user prompt where a list of options are given, and user
+    must give a numeric answer to indicate their selection.
+
+    Parameters:
+        prompt: 
+            The string of the prompt of which will be displayed to the user
+        option_labels: 
+            The string labels that will be displayed next to their numbers for
+            easier reading.
+    
+    Returns:
+        The option selected by the user
+    '''
+    while True:
+        print(prompt)
+        print()
+        for i, label in enumerate(option_labels):
+            print(f"{i + 1}. {label}")
+        print()
+        answer: str = input("Select your option: ")
+        if not answer.isnumeric():
+            print(f"Insufficient answer \"{answer}\" (Answer must be numeric)")
+            continue
+        selection: int = int(answer)
+        if selection <= 0 or selection > len(option_labels):
+            print(f"Insufficient answer \"{selection}\" (Out of range)")
+            continue
+        return selection
+
+def multiselect_prompt(prompt: str, option_labels: list[str]) -> set[int]:
+    '''
+    A specific type of user prompt where a list of options are given, and user
+    is given fine-grain control on how they want to select their options, with
+    a selection scheme similar to Yet Another Yogurt (yay).
+
+    Unlike a regular selection prompt, this prompt allows for multiple choices
+    to be selected, or even no options.
+
+    Parameters:
+        prompt: 
+            The string of the prompt of which will be displayed to the user
+        option_labels: 
+            The string labels that will be displayed next to their numbers for
+            easier reading.
+    
+    Returns:
+        A set of the options selected by the user
+    '''
+    while True:
+        print(prompt)
+        print()
+        for i, label in enumerate(option_labels):
+            print(f"{i + 1}. {label}")
+        print()
+        # TODO: Support exclusion? (e.g. "^3", everything except 3)
+        print("Select your options: (eg: \"1 2 3\", \"1-3\")")
+        print("Or, simply press Enter to select no options.")
+        answer: str = input("> ")
+        if len(answer) == 0 or answer.isspace():
+            break
+        items: list[str] = answer.split(" ")
+        options: set[int] = set[int]()
+        errors: int = 0
+        for item in items:
+            if item.isnumeric():
+                option: int = int(item)
+                if option > len(option_labels) or option <= 0:
+                    print(f"Insufficient answer \"{option}\" (Out of range)")
+                    errors += 1
+                else:
+                    options.add(option)
+                continue
+            
+            if isinstance(re.search("[a-zA-Z]", item), re.Match):
+                print(f"Insufficient answer \"{item}\" (Contains letters)")
+                errors += 1
+                continue
+
+            if isinstance(re.search(r"^\d+-\d+$", item), re.Match):
+                start, end = item.split("-")
+                s: int = int(start)
+                e: int = int(end)
+                if s > e:
+                    print(f"Insufficient answer \"{item}\" (Bad range: start > end)")
+                    errors += 1
+                    continue
+                for i in range(s, e + 1):
+                    options.add(i)
+                continue
+
+            print(f"Insufficient option \"{item}\". Please check your formatting and try again.")
+            errors += 1
+        if errors > 0:
+            continue
+        return options
+
+    return set()
 
 def dependency_check():
     '''
@@ -390,24 +491,23 @@ def main():
     print("WARNING: THIS SCRIPT IS CURRENTLY A WORK IN PROGRESS AND NOT YET COMPLETE.")
     print("This script will ask you a few questions to build the theme so it best fits your preferences.\n")
 
-    print("For which compositor will you be building this theme for?")
-    print("\t1. Hyprland\n\t2. KDE Plasma (KWin)\n")
+    comp_opt: int = select_prompt("For which compositor will you be building this theme for?", ["Hyprland", "KDE Plasma (KWin)"])
 
     folder_name: str = ""
-    while True:
-        option: int = int(input("Option: "))
-        match(option):
-            case 1:
-                folder_name = "hyprcursor"
-                comp = Compositor.HYPRLAND
-                break
-            case 2:
-                folder_name = "plasma"
-                comp = Compositor.KWIN
-                bimi_dependency_check()
-                break
-            case _:
-                print("Invalid option!\n")
+    match(comp_opt):
+        case 1:
+            folder_name = "hyprcursor"
+            comp = Compositor.HYPRLAND
+        case 2:
+            folder_name = "plasma"
+            comp = Compositor.KWIN
+            bimi_dependency_check()
+        case _:
+            comp= Compositor.UNSUPPORTED
+
+    print()
+
+    available_extras: list[str] = ["Posy's Refreshed Cursors (V2 Designs)", "Early Xerox default cursor", "Wrong finger click", "Winhelp (Colored Help)", "Social cursors (person & pin)", "Skin toned hands"]
 
     # TODO: Support theming
     # print("\nChoose which theme you would like for your cursors")
@@ -435,6 +535,9 @@ def main():
             create_hyprland_manifest()
         case Compositor.KWIN:
             create_kwin_manifest()
+        case _:
+            # Realistically, this case should never run.
+            pass
     procedure_cnt += 1
 
     print(f"{procedure_cnt}. Generating metadata files for static cursors")
