@@ -218,18 +218,19 @@ def create_cursor_metadatas(theme_dir: str, compositor: Compositor):
     for name, cursor in db["cursors"].items():
         if not cursor["build"]:
             continue
+        fin_name: str = cursor.get("out_file", name)
         output_dir: str
         match(compositor):
             case Compositor.HYPRLAND:
-                output_dir = f"{theme_dir}/hyprcursors/{name}"
+                output_dir = f"{theme_dir}/hyprcursors/{fin_name}"
             case Compositor.KWIN:
-                output_dir = f"{theme_dir}/cursors_scalable/{name}"
+                output_dir = f"{theme_dir}/cursors_scalable/{fin_name}"
             case _:
-                output_dir = f"{theme_dir}/{name}"
+                output_dir = f"{theme_dir}/{fin_name}"
 
         debug(f"Generating metadata for {name}")
         os.makedirs(output_dir, exist_ok=True)
-        create_metadata_file(compositor, output_dir, name)
+        create_metadata_file(compositor, output_dir, fin_name)
 
 def create_plain_svgs(theme_dir: str, compositor: Compositor):
     '''
@@ -245,17 +246,18 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
     for name, cursor in db["cursors"].items():
         if not cursor["build"]:
             continue
+        fin_name: str = cursor.get("out_file", name)
         input_file_name: str = f"{cursor.get("src_file", name)}.svg"
-        output_file_name: str = f"{cursor.get("out_file", name)}-plain.svg"
+        output_file_name: str = f"{fin_name}-plain.svg"
         file_path: str = f"./src/{input_file_name}"
         output_dir: str
         match(compositor):
             case Compositor.HYPRLAND:
-                output_dir = f"{theme_dir}/hyprcursors/{name}"
+                output_dir = f"{theme_dir}/hyprcursors/{fin_name}"
             case Compositor.KWIN:
-                output_dir = f"{theme_dir}/cursors_scalable/{name}"
+                output_dir = f"{theme_dir}/cursors_scalable/{fin_name}"
             case _:
-                output_dir = f"{theme_dir}/{name}"
+                output_dir = f"{theme_dir}/{fin_name}"
 
         debug(f"Generating Plain SVG for {name}")
         os.makedirs(output_dir, exist_ok=True)
@@ -279,16 +281,17 @@ def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: b
     for name, cursor in db["cursors"].items():
         if not cursor["build"]:
             continue
-        plain_svg: str = f"{cursor.get("out_file", name)}-plain.svg"
-        output_file_name = f"{cursor.get("out_file", name)}{"-optimized" if bimi_required and not cursor.get("skip_bimi", False) else ""}.svg"
+        fin_name: str = cursor.get("out_file", name)
+        plain_svg: str = f"{fin_name}-plain.svg"
+        output_file_name = f"{fin_name}{"-optimized" if bimi_required and not cursor.get("skip_bimi", False) else ""}.svg"
         dir: str
         match(compositor):
             case Compositor.HYPRLAND:
-                dir = f"{theme_dir}/hyprcursors/{name}"
+                dir = f"{theme_dir}/hyprcursors/{fin_name}"
             case Compositor.KWIN:
-                dir = f"{theme_dir}/cursors_scalable/{name}"
+                dir = f"{theme_dir}/cursors_scalable/{fin_name}"
             case _:
-                dir = f"{theme_dir}/{name}"
+                dir = f"{theme_dir}/{fin_name}"
         
         debug(f"Optimizing SVG: {plain_svg}")
         _ = subprocess.run(["scour", f"{dir}/{plain_svg}", f"{dir}/{output_file_name}", "--set-precision=4", "--strip-xml-prolog", "--remove-titles", "--remove-description", "--remove-metadata", "--remove-descriptive-elements", "--enable-comment-stripping", "--indent=tab", "--no-line-breaks", "--strip-xml-space", "--enable-id-stripping", "--shorten-ids"])
@@ -310,9 +313,10 @@ def convert_to_qt(theme_dir: str):
     for name, cursor in db["cursors"].items():
         if not cursor["build"] or cursor.get("skip_bimi", False):
             continue
-        optimized_svg: str = f"{cursor.get("out_file", name)}-optimized.svg"
-        output_file_name = f"{cursor.get("out_file", name)}.svg"
-        dir = f"{theme_dir}/cursors_scalable/{name}"
+        fin_name: str = cursor.get("out_file", name)
+        optimized_svg: str = f"{fin_name}-optimized.svg"
+        output_file_name = f"{fin_name}.svg"
+        dir = f"{theme_dir}/cursors_scalable/{fin_name}"
         
         debug(f"Converting SVG: {optimized_svg}")
         _ = subprocess.run(["./svgtinyps", "convert", f"{dir}/{optimized_svg}", f"{dir}/{output_file_name}", f"--title=\"{db['manifest']['name']}\""])
@@ -335,19 +339,20 @@ def clean_up_artifacts(theme_dir: str, compositor: Compositor, bimi_converted: b
     for name, cursor in db["cursors"].items():
         if not cursor["build"]:
             continue
-        plain_svg = f"{cursor.get("out_file", name)}-plain.svg"
+        fin_name: str = cursor.get("out_file", name)
+        plain_svg = f"{fin_name}-plain.svg"
         match(compositor):
             case Compositor.HYPRLAND:
-                dir = f"{theme_dir}/hyprcursors/{name}"
+                dir = f"{theme_dir}/hyprcursors/{fin_name}"
             case Compositor.KWIN:
-                dir = f"{theme_dir}/cursors_scalable/{name}"
+                dir = f"{theme_dir}/cursors_scalable/{fin_name}"
             case _:
-                dir = f"{theme_dir}/{name}"
+                dir = f"{theme_dir}/{fin_name}"
         
         debug(f"Deleting {plain_svg}")
         _ = subprocess.run(["rm", f"{dir}/{plain_svg}"])
         if bimi_converted and not cursor.get("skip_bimi", False):
-            optimized_svg = f"{cursor.get("out_file", name)}-optimized.svg"
+            optimized_svg = f"{fin_name}-optimized.svg"
             debug(f"Deleting {optimized_svg}")
             _ = subprocess.run(["rm", f"{dir}/{optimized_svg}"])
 
@@ -364,7 +369,8 @@ def create_alias_sym_links(theme_dir: str):
     for name, cursor in db["cursors"].items():
         if not cursor["build"] or (not "aliases" in cursor):
             continue
-        abs_proc = subprocess.run(["realpath", f"{theme_dir}/cursors_scalable/{name}"], capture_output=True, text=True)
+        fin_name: str = cursor.get("out_file", name)
+        abs_proc = subprocess.run(["realpath", f"{theme_dir}/cursors_scalable/{fin_name}"], capture_output=True, text=True)
         abs_dir: str = abs_proc.stdout.strip()
         for alias in cursor["aliases"]:
             sym_link: str = f"{theme_dir}/cursors_scalable/{alias}"
