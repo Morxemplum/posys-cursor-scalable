@@ -7,6 +7,10 @@ import shutil
 import subprocess
 from src.cursors_data import CursorManifest, KWinCursor, Compositor, CursorDesign, kwin_nominal_size, db
 
+# If true, the program will continue running even if errors were produced by 
+# any processes run. DO NOT SET TO TRUE UNLESS YOU KNOW WHAT YOU'RE DOING!
+OVERRIDE_PROC_ERRORS: bool = False
+
 class ConfirmationDefault(enum.IntEnum):
     '''
     Useful enum to have to intuitively understand values for Yes/No prompts
@@ -344,6 +348,8 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
         compositor (Compositor enum):
             The compositor for which the theme is structured around
     '''
+    error: bool = False
+
     for name, cursor in db["cursors"].items():
         if not cursor["build"]:
             continue
@@ -364,7 +370,15 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
 
         debug(f"Generating Plain SVG for {name}")
         os.makedirs(output_dir, exist_ok=True)
-        _ = subprocess.run(["inkscape", "--export-type=svg", "--export-plain-svg", f"--export-filename={f"{output_dir}/{output_file_name}"}", file_path])
+        results = subprocess.run(["inkscape", "--export-type=svg", "--export-plain-svg", f"--export-filename={f"{output_dir}/{output_file_name}"}", file_path], capture_output=True)
+        # Inkscape CLI, even if you run into a fatal error, will still return a 0 exit code. We must look at stderr's len to determine failure.
+        if len(results.stderr) > 0:
+            error = True
+            # Convert the raw string into a formatted string, then print it.
+            print(str(results.stderr).encode("utf-8").decode("unicode_escape"))
+    if error and not OVERRIDE_PROC_ERRORS:
+        print("One or more errors have occurred while making the Plain SVGs. Can not continue with building until errors have been resolved.")
+        exit(1)
 
 def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: bool):
     '''
@@ -381,6 +395,7 @@ def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: b
             Whether BIMI conversion will be done later. If true, the output
             file name will be appended to be considered a temp file.
     '''
+    error: bool = False
     for name, cursor in db["cursors"].items():
         if not cursor["build"]:
             continue
@@ -397,7 +412,12 @@ def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: b
                 dir = f"{theme_dir}/{fin_name}"
         
         debug(f"Optimizing SVG: {plain_svg}")
-        _ = subprocess.run(["scour", f"{dir}/{plain_svg}", f"{dir}/{output_file_name}", "--set-precision=4", "--strip-xml-prolog", "--remove-titles", "--remove-description", "--remove-metadata", "--remove-descriptive-elements", "--enable-comment-stripping", "--indent=tab", "--no-line-breaks", "--strip-xml-space", "--enable-id-stripping", "--shorten-ids"])
+        result = subprocess.run(["scour", f"{dir}/{plain_svg}", f"{dir}/{output_file_name}", "--set-precision=4", "--strip-xml-prolog", "--remove-titles", "--remove-description", "--remove-metadata", "--remove-descriptive-elements", "--enable-comment-stripping", "--indent=tab", "--no-line-breaks", "--strip-xml-space", "--enable-id-stripping", "--shorten-ids"])
+        if (result.returncode != 0):
+            error = True
+    if error and not OVERRIDE_PROC_ERRORS:
+        print("One or more errors have occurred while optimizing the Plain SVGs. Can not continue with building until errors have been resolved.")
+        exit(1)
 
 def convert_to_qt(theme_dir: str):
     '''
@@ -413,6 +433,7 @@ def convert_to_qt(theme_dir: str):
         theme_dir (str):
             The file path to the folder that will be holding our cursor theme
     '''
+    error: bool = False
     for name, cursor in db["cursors"].items():
         if not cursor["build"] or cursor.get("skip_bimi", False):
             continue
@@ -422,7 +443,12 @@ def convert_to_qt(theme_dir: str):
         dir = f"{theme_dir}/cursors_scalable/{fin_name}"
         
         debug(f"Converting SVG: {optimized_svg}")
-        _ = subprocess.run(["./svgtinyps", "convert", f"{dir}/{optimized_svg}", f"{dir}/{output_file_name}", f"--title=\"{db['manifest']['name']}\""])
+        result = subprocess.run(["./svgtinyps", "convert", f"{dir}/{optimized_svg}", f"{dir}/{output_file_name}", f"--title=\"{db['manifest']['name']}\""])
+        if (result.returncode != 0):
+            error = True
+    if error and not OVERRIDE_PROC_ERRORS:
+        print("One or more errors have occurred while converting the optimized SVGs. Can not continue with building until errors have been resolved.")
+        exit(1)
 
 def clean_up_artifacts(theme_dir: str, compositor: Compositor, bimi_converted: bool):
     '''
