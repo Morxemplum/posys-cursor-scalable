@@ -42,6 +42,10 @@ class CursorDesign(TypedDict):
         out_file (str, Optional):
             If you wish the final SVG to have a different file name than
             the design, put the file name here (omitting file extension)
+        extra (bool, Optional):
+            If true, tells the program this cursor is not within the default
+            set of cursors and should look into the "extras" directory for
+            the cursor.
         aliases (list[str], Optional):
             The same cursor may be referred to different names by various
             programs or environments, or you want to fill in a design with
@@ -74,6 +78,7 @@ class CursorDesign(TypedDict):
     '''
     src_file: NotRequired[str]
     out_file: NotRequired[str]
+    extra: NotRequired[bool]
     aliases: NotRequired[list[str]]
 
     hotspot: NotRequired[tuple[float, float]]
@@ -408,6 +413,7 @@ db : CursorCollection = {
 
         "alt": {
             "build": False,
+            "extra": True,
             "out_file": "default",
             "size": (24, 24),
             "aliases": ["arrow", "left_ptr"]
@@ -415,6 +421,7 @@ db : CursorCollection = {
 
         "wrong-finger": {
             "build": False,
+            "extra": True,
             "out_file": "hand",
             "hotspot": (0.432, 0),
             "size": (24, 24),
@@ -423,6 +430,7 @@ db : CursorCollection = {
 
         "beam-v2": {
             "build": False,
+            "extra": True,
             "out_file": "beam",
             "size": (24, 24),
             "aliases": ["text", "ibeam", "xterm"]
@@ -430,6 +438,7 @@ db : CursorCollection = {
 
         "precision-v2": {
             "build": False,
+            "extra": True,
             "out_file": "precision",
             "hotspot": (0.5, 0.5),
             "size": (24, 24),
@@ -438,6 +447,7 @@ db : CursorCollection = {
 
         "winhelp": {
             "build": False,
+            "extra": True,
             "out_file": "help",
             "size": (32, 32),
             "aliases": ["question_arrow", "left_ptr_help", "whats_this", "dnd-ask", "5c6cd98b3f3ebcb1f9c7f1c204630408", "d9ce0ab605698f320427677b458ad60b"]
@@ -452,6 +462,7 @@ db : CursorCollection = {
 
         "social-person": {
             "build": False,
+            "extra": True,
             "out_file": "person",
             "hotspot": (0.253, 0),
             "size": (28, 28)
@@ -459,6 +470,7 @@ db : CursorCollection = {
 
         "map-pin": {
             "build": False,
+            "extra": True,
             "out_file": "pin",
             "hotspot": (0.253, 0),
             "size": (28, 28)

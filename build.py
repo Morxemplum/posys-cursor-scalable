@@ -351,6 +351,8 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
         input_file_name: str = f"{cursor.get("src_file", name)}.svg"
         output_file_name: str = f"{fin_name}-plain.svg"
         file_path: str = f"./src/{input_file_name}"
+        if cursor.get("extra", False):
+            file_path = f"./src/extra/{input_file_name}"
         output_dir: str
         match(compositor):
             case Compositor.HYPRLAND:
@@ -520,6 +522,43 @@ def main():
     #     option = int(theme_option)
 
     # TODO: Make it easy for users to select extra cursors they want to include in their theme
+    extra_opts: set[int] = multiselect_prompt("This theme offers extra cursors and alternatives on top of the regular selection. Here is a list of all the available extra cursors.", available_extras)
+
+    # Refreshed Cursors
+    if 1 in extra_opts:
+        db["cursors"]["beam"]["build"] = False
+        db["cursors"]["precision"]["build"] = False
+
+        db["cursors"]["beam-v2"]["build"] = True
+        db["cursors"]["precision-v2"]["build"] = True
+
+    # Early Xerox cursor (up arrow)
+    if 2 in extra_opts:
+        db["cursors"]["default"]["build"] = False
+
+        db["cursors"]["alt"]["build"] = True
+
+    # Wrong finger (middle finger click)
+    if 3 in extra_opts:
+        db["cursors"]["hand"]["build"] = False
+
+        db["cursors"]["wrong-finger"]["build"] = True
+    
+    # Winhelp (Colored Help cursor)
+    if 4 in extra_opts:
+        db["cursors"]["help"]["build"] = False
+
+        db["cursors"]["winhelp"]["build"] = True
+    
+    # Social cursors (person & pin)
+    if 5 in extra_opts:
+        db["cursors"]["social-person"]["build"] = True
+        db["cursors"]["map-pin"]["build"] = True
+    
+    # Skin toned hands
+    if 6 in extra_opts:
+        print("Skin tones has not yet been implemented! Stay tuned")
+
     
     print(f"{procedure_cnt}. Creating appropriate theme directories")
     theme_dir: str = f"./build/{folder_name}"
