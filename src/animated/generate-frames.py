@@ -1,73 +1,197 @@
+import argparse
 import math
 import json
 import subprocess
+import sys
 from copy import deepcopy
 from collections import deque
+from logging import debug
 from os import remove, rename
+from pathlib import Path
 
-# In milliseconds
-DURATION = 2500 # 715 for Mono (2/7 the duration)
-# Higher will lead to smoother appearance, at cost of efficiency and file size
-FRAME_RATE = 30
+# The data module is in the parent directory, so we need to modify the path accordingly
+parent_dir = Path(__file__).resolve().parent.parent
+sys.path.append(str(parent_dir))
+from cursors_data import KWinCursor, KWinAnimatedCursor
+
 REVERSE = True # Posy's animation goes in the opposite direction of the gradient
-CURSOR_NAME = "progress"
-MONO = False
-ENVIRONMENT = "plasma" # "plasma" or "hyprland"
+subprocess_output = False
+# Dict that directly names all hourglass cursors and maps their template SVG files
+CURSORS = {
+    "progress" : "background-template.svg", 
+    "wait" : "hourglass-template.svg"
+}
+MONO_CURSORS = {
+    "progress" : "background-mono-template.svg", 
+    "wait" : "mono-template.svg"
+}
 
-colors = [  "c000ff", # purple 
-            "0066ff", # blue
-            "00baff", # turquoise
-            "46f609", # green
-            "fffc00", # yellow
-            "fea002", # orange
-            "ff0030" # red
-        ]
+class ArgConsts(argparse.Namespace):
+    '''
+    This class mainly exists to provide type definitions for the arguments
+    provided by my argparse.
+    '''
+    duration: int # pyright: ignore[reportUninitializedInstanceVariable]
+    frame_rate: int # pyright: ignore[reportUninitializedInstanceVariable]
+    compositor: str # pyright: ignore[reportUninitializedInstanceVariable]
+    mono: bool | None # pyright: ignore[reportUninitializedInstanceVariable]
+    cursor: str | None # pyright: ignore[reportUninitializedInstanceVariable]
 
-segment_length = 3.43
-hypotenuse = segment_length * 7
+parser = argparse.ArgumentParser(description="Individual generation script for the hourglass animated cursors (wait & process)")
+_ = parser.add_argument("duration", type=int, help="How long the animation of the cursor will last (in milliseconds)")
+_ = parser.add_argument("frame_rate", type=int, help="How many frames will be made per second of animation. Delays will be calculated from this value.")
+_ = parser.add_argument("compositor", type=str, help="The Wayland compositor that the cursors will be made for (hyprland, kwin)")
+_ = parser.add_argument("--mono", action="store_true", help="If used, the monotone variants will be generated instead of the colorfuls")
+_ = parser.add_argument("--cursor", type=str, help="Picks a specific hourglass cursor to generate. If not present, all cursors will be generated.")
+args: ArgConsts = parser.parse_args(namespace=ArgConsts())
 
-# In the progress template, the hourglass is significantly smaller and the measurements have to be adjusted
-if CURSOR_NAME == "progress":
-    hypotenuse = 10.67
-    segment_length = hypotenuse / 7
-    
-hypr_headers = {
-"wait":'''resize_algorithm = none
-hotspot_x = 0
-hotspot_y = 0
-define_override = watch
+# TODO: Read cursor attributes directly from db?
+def create_hyprland_metadata(cursor: str, frames: int, rate: int, delay: int):
+    '''
+    Writes metadata files for the cursors following the Hyprcursor metadata
+    format.
 
-''',
-"progress":'''resize_algorithm = none
-hotspot_x = 0
-hotspot_y = 0
-define_override = half_busy
-define_override = left_ptr_watch
-define_override = background
+    Parameters:
+        cursor (str):
+            The direct name of the cursor that correlates to a key in the
+            database
+        frames (int):
+            The total number of frames present in the animation
+        rate (int):
+            The suggested frame rate of the cursor. Since delays only accept
+            integers, we intentionally truncate the value and as a result, lose
+            precision on our duration. By providing the frame rate, we
+            calculate when to round up so the cursor is much closer to our
+            intended duration.
+        delay (int):
+            The delay between each frame, in milliseconds
+    '''
+    num_digits = int(math.log10(frames) + 1)
+    denom = round(1/((1000 / rate) - delay), 4)
+    ins_buffer = 1
+    frame_list = range(1, frames)
+    with open(f"{cursor}/meta.hl", "w") as f:
+        _ = f.write("resize_algorithm = none\n")
+        _ = f.write("hotspot_x = 0\n")
+        _ = f.write("hotspot_y = 0\n")
+        match(cursor):
+            case "progress":
+                _ = f.write("define_override = watch\n")
+            case "wait":
+                _ = f.write("define_override = half_busy\n")
+                _ = f.write("define_override = left_ptr_watch\n")
+                _ = f.write("define_override = background\n")
+            case _:
+                pass
+        # Write reference SVG
+        _ = f.write(f"define_size = 0, {cursor}.svg, {delay}\n")
+        for i in frame_list:
+            fi = str(i).zfill(num_digits)
+            final_delay = delay
+            ins_buffer += 1
+            if (ins_buffer >= denom):
+                ins_buffer -= denom
+                final_delay += 1
+            _ = f.write(f"define_size = 0, {cursor}-{fi}.svg, {final_delay}\n")
 
-'''}
+def create_kwin_metadata(cursor: str, frames: int, rate: int, delay: int):
+    '''
+    Writes metadata files for the cursors following the KDE metadata format.
 
-def generate_frames(total_frames):
+    Parameters:
+        cursor (str):
+            The direct name of the cursor that correlates to a key in the
+            database
+        frames (int):
+            The total number of frames present in the animation
+        rate (int):
+            The suggested frame rate of the cursor. Since delays only accept
+            integers, we intentionally truncate the value and as a result, lose
+            precision on our duration. By providing the frame rate, we
+            calculate when to round up so the cursor is much closer to our
+            intended duration.
+        delay (int):
+            The delay between each frame, in milliseconds
+    '''
+    num_digits = int(math.log10(frames) + 1)
+    denom = round(1/((1000 / rate) - delay), 4)
+    ins_buffer = 1
+    frame_list = range(1, frames)
+
+    frame_dict: KWinCursor = {
+        "filename": f"{cursor}.svg",
+        "nominal_size": 24,
+        "hotspot_x": 0,
+        "hotspot_y": 0,
+        "delay": delay
+    }
+    animated_cursor: KWinAnimatedCursor = {
+        "frames": [frame_dict]
+    }
+    for i in frame_list:
+        final_delay = delay
+        ins_buffer += 1
+        if (ins_buffer >= denom):
+            ins_buffer -= denom
+            final_delay += 1
+        new_frame = deepcopy(frame_dict)
+        new_frame["filename"] = f"{cursor}-{str(i).zfill(num_digits)}.svg"
+        new_frame["delay"] = final_delay
+        animated_cursor["frames"].append(new_frame)
+    with open(f"{cursor}/metadata.json", "w") as f:
+        _ = f.write(json.dumps(animated_cursor["frames"]))
+
+colors = [  
+    "c000ff", # purple 
+    "0066ff", # blue
+    "00baff", # turquoise
+    "46f609", # green
+    "fffc00", # yellow
+    "fea002", # orange
+    "ff0030" # red
+]
+
+def generate_frames(cursor: str, total_frames : int):
+    '''
+    Given a cursor, generates all of the individual frames that will make up
+    the animation.
+
+    Parameters:
+        cursor (str):
+            The direct name of the cursor that correlates to a key in the
+            database
+        total_frames (int):
+            The total number of frames present in the animation
+    '''
     export_statements = ["export-plain-svg", "export-do", "file-close"]
     delimiter = ";"
     num_digits = int(math.log10(total_frames) + 1)
     start = 1
     end = len(colors) + 2
 
-    template = "hourglass-template.svg"
-    if CURSOR_NAME == "progress":
-        template = "background-template.svg"
-
+    template = CURSORS[cursor]
     overflow = 0
     if REVERSE:
         start -= 1
         end -= 1
         overflow = 8
+
+    segment_length: float
+    hypotenuse: float
+    match(cursor):
+        case "progress":
+            hypotenuse = 10.67
+            segment_length = hypotenuse / 7
+        case "wait":
+            segment_length = 3.43
+            hypotenuse = segment_length * 7
+        case _:
+            return
     
     begin_statements = [f"select-by-id:layer{overflow}", f"select-by-id:hourglass{overflow}", "delete"]
 
     for i in range(0, total_frames):
-        print(f"Generating frame {str(i).zfill(num_digits)}")
+        debug(f"\t\tGenerating frame {str(i).zfill(num_digits)}")
         statements = deepcopy(begin_statements)
         t_amount = i/total_frames * hypotenuse
         
@@ -115,14 +239,27 @@ def generate_frames(total_frames):
             statements.append(f"unselect-by-id:layer{j}")
 
         if i > 0:
-            statements.append(f"export-filename:{CURSOR_NAME}-{str(i).zfill(num_digits)}.svg")
+            statements.append(f"export-filename:./{cursor}/{cursor}-{str(i).zfill(num_digits)}.svg")
         else:
-            statements.append(f"export-filename:{CURSOR_NAME}.svg")
+            statements.append(f"export-filename:./{cursor}/{cursor}.svg")
         statements += export_statements
 
-        subprocess.run(["inkscape", f"--actions={delimiter.join(statements)}", template], check=True)
+        _ = subprocess.run(["inkscape", f"--actions={delimiter.join(statements)}", template], check=True, capture_output=(not subprocess_output))
 
-def generate_frames_mono(total_frames):
+def generate_frames_mono(cursor: str, total_frames: int):
+    '''
+    Given a cursor, generates all of the individual frames that will make up
+    the animation. Similar to generate_frames, but this function has slightly
+    tweaked procedures that fit the file structure and needs of the mono
+    versions of the cursor.
+
+    Parameters:
+        cursor (str):
+            The direct name of the cursor that correlates to a key in the
+            database
+        total_frames (int):
+            The total number of frames present in the animation
+    '''
     export_statements = ["export-plain-svg", "export-do", "file-close"]
     delimiter = ";"
     num_digits = int(math.log10(total_frames) + 1)
@@ -130,22 +267,31 @@ def generate_frames_mono(total_frames):
     k_start = start + 1
     end = 8
 
-    template = "mono-template.svg"
-    if CURSOR_NAME == "progress":
-        template = "background-mono-template.svg"
+    template = MONO_CURSORS[cursor]
 
     overflow = 0
     if REVERSE:
         k_start = start - 1
         end -= 1
         overflow = 8
+    
+    segment_length: float
+    hypotenuse: float
+    match(cursor):
+        case "progress":
+            hypotenuse = 10.67
+            segment_length = hypotenuse / 7
+        case "wait":
+            segment_length = 3.43
+            hypotenuse = segment_length * 7
+        case _:
+            return
 
     begin_statements = [f"select-by-id:layer{overflow}", f"select-by-id:hourglass{overflow}", "delete"]
-
     mono_hypotenuse = hypotenuse * (2/7)
 
     for i in range(0, total_frames):
-        print(f"Generating frame {str(i).zfill(num_digits)}")
+        debug(f"\t\tGenerating frame {str(i).zfill(num_digits)}")
         statements = deepcopy(begin_statements)
         t_amount = i/total_frames * mono_hypotenuse
 
@@ -187,140 +333,97 @@ def generate_frames_mono(total_frames):
             statements.append("selection-bottom")
         
         if i > 0:
-            statements.append(f"export-filename:{CURSOR_NAME}-{str(i).zfill(num_digits)}.svg")
+            statements.append(f"export-filename:./{cursor}/{cursor}-{str(i).zfill(num_digits)}.svg")
         else:
-            statements.append(f"export-filename:{CURSOR_NAME}.svg")
+            statements.append(f"export-filename:./{cursor}/{cursor}.svg")
         statements += export_statements
 
-        subprocess.run(["inkscape", f"--actions={delimiter.join(statements)}", template], check=True)
-
-
-def write_metadata(total_frames, delay):
-    num_digits = int(math.log10(total_frames) + 1)
-    # We will insert milliseconds in between frames to make up for lost time and get closer to our declared duration
-    denom = round(1/((1000 / FRAME_RATE) - delay), 4)
-    ins_buffer = 1
-    frame_list = range(1, total_frames)
-    header = ""
-    if (ENVIRONMENT == "hyprland"):
-        if (not CURSOR_NAME in hypr_headers):
-            raise Exception("Invalid cursor. Make sure you have selected the proper cursor name.")
-        with open("meta.hl", "w") as f:
-            f.write(hypr_headers[CURSOR_NAME])
-            # Write reference SVG first
-            f.write(f"define_size = 0, {CURSOR_NAME}.svg, {delay}\n")
-            for i in frame_list:
-                fi = str(i).zfill(num_digits)
-                final_delay = delay
-                ins_buffer += 1
-                if (ins_buffer >= denom):
-                    ins_buffer -= denom
-                    final_delay += 1
-                f.write(f"define_size = 0, {CURSOR_NAME}-{fi}.svg, {final_delay}\n")
-    elif (ENVIRONMENT == "plasma"):
-        frame_dict = {
-            "filename": f"{CURSOR_NAME}.svg",
-            "nominal_size": 24,
-            "hotspot_x": 0,
-            "hotspot_y": 0,
-            "delay": delay
-        }
-        frames = [frame_dict]
-        for i in frame_list:
-            final_delay = delay
-            ins_buffer += 1
-            if (ins_buffer >= denom):
-                ins_buffer -= denom
-                final_delay += 1
-            new_frame = deepcopy(frame_dict)
-            new_frame["filename"] = f"{CURSOR_NAME}-{str(i).zfill(num_digits)}.svg"
-            new_frame["delay"] = final_delay
-            frames.append(new_frame)
-        with open("metadata.json", "w") as f:
-            f.write(json.dumps(frames))
+        _ = subprocess.run(["inkscape", f"--actions={delimiter.join(statements)}", template], check=True, capture_output=(not subprocess_output))
         
-def optimize_frames(total_frames):
+def optimize_frames(cursor: str, total_frames: int):
+    '''
+    Takes all of the Plain SVGs and optimizes them using the Scour program.
+    Applies aggressive optimizations to try and ensure the lowest file size
+    possible.
+
+    Parameters:
+        cursor (str):
+            The direct name of the cursor that correlates to a key in the
+            database
+        frames (int):
+            The total number of frames present in the animation
+    '''
     num_digits = int(math.log10(total_frames) + 1)
-    scour = ["scour", f"{CURSOR_NAME}.svg", f"{CURSOR_NAME}-o.svg", "--set-precision=4", 
+    scour = ["scour", f"./{cursor}/{cursor}.svg", f"./{cursor}/{cursor}-o.svg", "--set-precision=4", 
     "--strip-xml-prolog", "--remove-titles", "--remove-description",
     "--remove-metadata", "--remove-descriptive-elements", 
     "--enable-comment-stripping", "--no-line-breaks", "--strip-xml-space", 
     "--enable-id-stripping", "--shorten-ids"]
 
-    subprocess.run(scour, check=True)
-    remove(f"{CURSOR_NAME}.svg")
-    rename(f"{CURSOR_NAME}-o.svg", f"{CURSOR_NAME}.svg")
+    _ = subprocess.run(scour, check=True, capture_output=(not subprocess_output))
+    remove(f"./{cursor}/{cursor}.svg")
+    rename(f"./{cursor}/{cursor}-o.svg", f"./{cursor}/{cursor}.svg")
 
     for i in range(1, total_frames):
         fi = str(i).zfill(num_digits)
-        scour[1] = f"{CURSOR_NAME}-{fi}.svg"
-        scour[2] = f"{CURSOR_NAME}-{fi}o.svg"
-        subprocess.run(scour, check=True)
-        remove(f"{CURSOR_NAME}-{fi}.svg")
-        rename(f"{CURSOR_NAME}-{fi}o.svg", f"{CURSOR_NAME}-{fi}.svg")
+        scour[1] = f"./{cursor}/{cursor}-{fi}.svg"
+        scour[2] = f"./{cursor}/{cursor}-{fi}o.svg"
+        _ = subprocess.run(scour, check=True, capture_output=(not subprocess_output))
+        remove(f"./{cursor}/{cursor}-{fi}.svg")
+        rename(f"./{cursor}/{cursor}-{fi}o.svg", f"./{cursor}/{cursor}-{fi}.svg")
 
-def convert_to_svg_tiny(total_frames):
-    num_digits = int(math.log10(total_frames) + 1)
-    SVGTINYPS_PATH = "../../svgtinyps"
-    svgtinyps = [SVGTINYPS_PATH, "convert", f"{CURSOR_NAME}.svg", f"{CURSOR_NAME}-b.svg", "--title=\"Posy's Cursor\""]
+def generate_cursor(cursor: str, total_frames: int, rate: int):
+    '''
+    Given the cursor name, total number of frames, and the suggested frame 
+    rate, procedures will be run to generate the animated cursor, all the way
+    up to optimizing the SVG file size.
+
+    Parameters:
+        cursor (str):
+            The direct name of the cursor that correlates to a key in the
+            database
+        total_frames (int):
+            The total number of frames present in the animation
+        rate (int):
+            The suggested frame rate of the cursor, in frames per second.
+    '''
+    if args.mono:
+        generate_frames_mono(cursor, total_frames)
+    else:
+        generate_frames(cursor, total_frames)
+
+    debug("\tWriting to metadata file")
+    delay: int = math.floor(1000 / rate)
+    match(args.compositor):
+        case "hyprland":    
+            create_hyprland_metadata(cursor, total_frames, rate, delay)
+        case "kwin":
+            create_kwin_metadata(cursor, total_frames, rate, delay)
+        case _:
+            pass
+    debug("\tOptimizing SVG files")
     
-    subprocess.run(svgtinyps, check=True)
-    remove(f"{CURSOR_NAME}.svg")
-    rename(f"{CURSOR_NAME}-b.svg", f"{CURSOR_NAME}.svg")
-
-    for i in range(1, total_frames):
-        fi = str(i).zfill(num_digits)
-        svgtinyps[2] = f"{CURSOR_NAME}-{fi}.svg"
-        svgtinyps[3] = f"{CURSOR_NAME}-{fi}b.svg"
-        subprocess.run(svgtinyps, check=True)
-        remove(f"{CURSOR_NAME}-{fi}.svg")
-        rename(f"{CURSOR_NAME}-{fi}b.svg", f"{CURSOR_NAME}-{fi}.svg")
-
-def strip_version_header(total_frames):
-    num_digits = int(math.log10(total_frames) + 1)
-    line = ""
-    with open(f"{CURSOR_NAME}.svg", "r") as f:
-        # Ideally with the optimization all the information will be on one line
-        line = f.readline()
-    new_line = line.replace(" version=\"1.1\"", "")
-    with open(f"{CURSOR_NAME}.svg", "w") as f:
-        f.write(new_line)
-
-    for i in range(1, total_frames):
-        fi = str(i).zfill(num_digits)
-        with open(f"{CURSOR_NAME}-{fi}.svg", "r") as f:
-            line = f.readline()
-        new_line = line.replace(" version=\"1.1\"", "")
-        with open(f"{CURSOR_NAME}-{fi}.svg", "w") as f:
-            f.write(new_line)
-        
-
+    optimize_frames(cursor, total_frames)
 
 def main():
-    total_frames = math.ceil(DURATION * FRAME_RATE / 1000)
-    delay = math.floor(1000 / FRAME_RATE)
+    '''
+    WARNING: This function only runs when someone wants to run this script 
+    standalone. The main build script doesn't call this function!
+    '''
+    total_frames: int = math.ceil(args.duration * args.frame_rate / 1000)
+    
     print("Frames to generate:", total_frames)
-    print("Calculated delay:", delay)
 
-    if MONO:
-        generate_frames_mono(total_frames)
-    else:
-        generate_frames(total_frames)
-
-    print("Writing to metadata file")
-    write_metadata(total_frames, delay)
-
-    print("Optimizing SVG files")
-    optimize_frames(total_frames)
-
-    if (ENVIRONMENT == "plasma"):
-        if MONO:
-            # The gradient that is used to give the mono hourglass its signature shine is Tiny 1.2 compliant, but not BIMI compliant
-            # Since the SVG is already Tiny 1.2 compliant, we'll just strip the version information and have Plasma assume it is Tiny 1.2
-            print("Stripping Version Header from SVGs")
-            strip_version_header(total_frames)
+    if args.cursor:
+        if args.cursor in CURSORS:
+            print(f"Generating selected cursor")
+            generate_cursor(args.cursor, total_frames, args.frame_rate)
         else:
-            print("Converting frames to SVG Tiny 1.2 (BIMI P/S)")
-            convert_to_svg_tiny(total_frames)
+            print("ERROR: Invalid cursor name. Accepted values are: wait, progress.")
+    else: 
+        for cursor in CURSORS.keys():
+            print(f"Generating {cursor}")
+            generate_cursor(cursor, total_frames, args.frame_rate)
 
-main()
+if __name__ == "__main__":
+    main()
