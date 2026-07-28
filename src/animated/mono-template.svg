@@ -8,17 +8,21 @@
    height="24"
    viewBox="0 0 24 24"
    sodipodi:docname="mono-template.svg"
-   inkscape:version="1.4.1 (93de688d07, 2025-03-30)"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs1">
     <linearGradient
        id="linearGradient1"
-       inkscape:collect="always">
+       inkscape:collect="always"
+       x1="0"
+       y1="0"
+       x2="15.66"
+       y2="15.66"
+       gradientUnits="userSpaceOnUse">
       <stop
          style="stop-color:#7f7f7f;stop-opacity:1;"
          offset="0"
@@ -28,15 +32,6 @@
          offset="1"
          id="stop2" />
     </linearGradient>
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient1"
-       id="linearGradient2"
-       x1="4.4593515e-15"
-       y1="-0.00390625"
-       x2="15.661821"
-       y2="15.657915"
-       gradientUnits="userSpaceOnUse" />
   </defs>
   <sodipodi:namedview
      id="namedview1"
@@ -47,11 +42,11 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="22.627417"
-     inkscape:cx="15.954097"
-     inkscape:cy="5.8999222"
+     inkscape:zoom="32"
+     inkscape:cx="11.546875"
+     inkscape:cy="9.671875"
      inkscape:window-width="2560"
-     inkscape:window-height="1364"
+     inkscape:window-height="1412"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
@@ -86,13 +81,13 @@
        inkscape:locked="false" />
   </sodipodi:namedview>
   <path
-     style="display:inline;opacity:1;fill:url(#linearGradient2);fill-opacity:1;stroke-width:0.464"
+     style="display:inline;opacity:1;fill:url(#linearGradient1);fill-opacity:1;stroke-width:0.464"
      d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
      id="hourglass_fill"
      sodipodi:nodetypes="ccccccc"
      inkscape:label="hourglass" />
   <path
-     style="fill:#ffffff;fill-opacity:1"
+     style="display:inline;fill:#ffffff;fill-opacity:1"
      d="m -8.5761719,8.5742188 -3.4296871,3.4296872 24,24 3.429687,-3.429687 z"
      id="layer1"
      inkscape:label="white1" />
@@ -132,7 +127,7 @@
      id="layer0"
      inkscape:label="overlay2" />
   <path
-     style="fill:#ffffff;fill-opacity:1"
+     style="display:inline;fill:#ffffff;fill-opacity:1"
      d="m 15.433687,-15.436 -3.429687,3.429687 24,24 L 39.433687,8.564 Z"
      id="layer8"
      inkscape:label="overlay1" />
@@ -189,5 +184,6 @@
      d="M 0,0 H 24 C 23.292893,4.0446509 17.197228,9.059049 15.35875,12.000613 17.01338,14.899751 23.221178,19.69476 24,24 H 0 C 0.72,19.72 6.96,15.040613 8.64,12.000613 6.8015222,8.8893434 0.82024387,3.9597981 0,0 Z"
      id="hourglass0"
      sodipodi:nodetypes="ccccccc"
-     inkscape:label="hourglass0" />
+     inkscape:label="hourglass0"
+     sodipodi:insensitive="true" />
 </svg>
