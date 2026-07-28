@@ -1,3 +1,4 @@
+import __main__
 import argparse
 import math
 import json
@@ -37,6 +38,26 @@ class ArgConsts(argparse.Namespace):
     output: str # pyright: ignore[reportUninitializedInstanceVariable]
     mono: bool | None # pyright: ignore[reportUninitializedInstanceVariable]
     cursor: str | None # pyright: ignore[reportUninitializedInstanceVariable]
+
+def animated_path() -> str:
+    '''
+    Depending on whether this script is ran directly or being invoked by the
+    build script, the environment that relative paths are based on can change.
+
+    This function adjusts the relative file path depending on the script's
+    location to ensure templates can be found.
+
+    Returns:
+        The relative path that leads to the "animated" folder in the repo.
+    '''
+    match(Path(__main__.__file__).resolve().parent.name):
+        case "animated":
+            return "."
+        case "src":
+            return "animated"
+        # The repository folder can change names, so treat it as default case
+        case _:
+            return "src/animated"
 
 def create_hyprland_metadata(path: str, cursor: str, frames: int, rate: int, delay: int):
     '''
@@ -173,7 +194,7 @@ def generate_frames(path: str, cursor: str, total_frames : int):
     start = 1
     end = len(colors) + 2
 
-    template = CURSORS[cursor]
+    template = f"{animated_path()}/{CURSORS[cursor]}"
     overflow = 0
     if REVERSE:
         start -= 1
@@ -274,7 +295,7 @@ def generate_frames_mono(path: str, cursor: str, total_frames: int):
     k_start = start + 1
     end = 8
 
-    template = MONO_CURSORS[cursor]
+    template = f"{animated_path()}/{MONO_CURSORS[cursor]}"
 
     overflow = 0
     if REVERSE:
