@@ -5,7 +5,10 @@ import os
 import re
 import shutil
 import subprocess
-from src.cursors_data import CursorManifest, KWinCursor, Compositor, CursorDesign, kwin_nominal_size, db
+
+import src.animated.hourglasses as hourglasses
+from src.cursors_data import CursorManifest, KWinCursor, Compositor, CursorDesign, ThemeColor, kwin_nominal_size, db
+
 
 # If true, the program will continue running even if errors were produced by 
 # any processes run. DO NOT SET TO TRUE UNLESS YOU KNOW WHAT YOU'RE DOING!
@@ -419,6 +422,38 @@ def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: b
         print("One or more errors have occurred while optimizing the Plain SVGs. Can not continue with building until errors have been resolved.")
         exit(1)
 
+def hourglass_cursors(theme_dir: str, compositor: Compositor):
+    '''
+    Utilizes an external generation script to create the animated hourglass
+    cursors, given the preferances in the database. Then, moves build artifacts
+    into final theme.
+
+    Parameters:
+        theme_dir (str):
+            The file path to the folder that will be holding our cursor theme
+        compositor (Compositor enum):
+            The compositor for which the theme is structured around
+    '''
+    # It'll be faster and convenient to directly list the cursors that will be generated
+    names : list[str] = ["wait", "progress"]
+
+    path: str
+    match(compositor):
+        case Compositor.HYPRLAND:
+            path = f"{theme_dir}/hyprcursors"
+        case Compositor.KWIN:
+            path = f"{theme_dir}/cursors_scalable"
+        case _:
+            path = f"{theme_dir}"
+
+    for name in names:
+        cursor: CursorDesign = db["cursors"][name]
+        assert("total_frames" in cursor)
+        assert("animation_speed" in cursor)
+        print(f"\t\tGenerating {name}")
+        os.makedirs(f"{path}/{name}", exist_ok=True)
+        hourglasses.generate_cursor(path, name, cursor["total_frames"], cursor["animation_speed"], compositor, (db["theme"] == ThemeColor.MONO) or (db["theme"] == ThemeColor.MONO_BLACK))
+
 def convert_to_qt(theme_dir: str):
     '''
     KWin uses Qt for its graphics framework. Qt does not support the full SVG
@@ -547,7 +582,6 @@ def main():
     # else:
     #     option = int(theme_option)
 
-    # TODO: Make it easy for users to select extra cursors they want to include in their theme
     extra_opts: set[int] = multiselect_prompt("This theme offers extra cursors and alternatives on top of the regular selection. Here is a list of all the available extra cursors.", available_extras)
 
     # Refreshed Cursors
@@ -618,7 +652,10 @@ def main():
     optimize_plain_svgs(theme_dir, comp, bimi)
     procedure_cnt += 1
 
-    # TODO: When we incorporate animated cursors, it'll be done here.
+    print(f"{procedure_cnt}. Generating animated cursors")
+    print("\tHourglass cursors")
+    hourglass_cursors(theme_dir, comp)
+    procedure_cnt += 1
 
     if bimi:
         print(f"{procedure_cnt}. Making SVGs Qt compatible.")
