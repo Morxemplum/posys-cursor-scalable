@@ -372,7 +372,7 @@ def optimize_frames(cursor: str, total_frames: int):
         remove(f"./{cursor}/{cursor}-{fi}.svg")
         rename(f"./{cursor}/{cursor}-{fi}o.svg", f"./{cursor}/{cursor}-{fi}.svg")
 
-def generate_cursor(cursor: str, total_frames: int, rate: int):
+def generate_cursor(cursor: str, total_frames: int, rate: int, compositor: str, mono: bool):
     '''
     Given the cursor name, total number of frames, and the suggested frame 
     rate, procedures will be run to generate the animated cursor, all the way
@@ -386,15 +386,19 @@ def generate_cursor(cursor: str, total_frames: int, rate: int):
             The total number of frames present in the animation
         rate (int):
             The suggested frame rate of the cursor, in frames per second.
+        compositor (str):
+            The Wayland compositor that the cursors will be made for.
+        mono (bool):
+            If true, the mono templates will be used instead of the regular templates
     '''
-    if args.mono:
+    if mono:
         generate_frames_mono(cursor, total_frames)
     else:
         generate_frames(cursor, total_frames)
 
     debug("\tWriting to metadata file")
     delay: int = math.floor(1000 / rate)
-    match(args.compositor):
+    match(compositor):
         case "hyprland":    
             create_hyprland_metadata(cursor, total_frames, rate, delay)
         case "kwin":
@@ -417,13 +421,13 @@ def main():
     if args.cursor:
         if args.cursor in CURSORS:
             print(f"Generating selected cursor")
-            generate_cursor(args.cursor, total_frames, args.frame_rate)
+            generate_cursor(args.cursor, total_frames, args.frame_rate, args.compositor, getattr(args, "mono", False))
         else:
             print("ERROR: Invalid cursor name. Accepted values are: wait, progress.")
     else: 
         for cursor in CURSORS.keys():
             print(f"Generating {cursor}")
-            generate_cursor(cursor, total_frames, args.frame_rate)
+            generate_cursor(cursor, total_frames, args.frame_rate, args.compositor, getattr(args, "mono", False))
 
 if __name__ == "__main__":
     main()
