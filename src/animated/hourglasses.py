@@ -11,9 +11,10 @@ from os import remove, rename
 from pathlib import Path
 
 # The data module is in the parent directory, so we need to modify the path accordingly
-parent_dir = Path(__file__).resolve().parent.parent
-sys.path.append(str(parent_dir))
-from cursors_data import KWinCursor, KWinAnimatedCursor, Compositor, db, kwin_nominal_size
+repo_dir = Path(__file__).resolve().parent.parent.parent
+sys.path.append(str(repo_dir))
+# We must maintain the same namespace as the main build script, otherwise the Python interpreter will bug out on certain logic.
+from src.cursors_data import KWinCursor, KWinAnimatedCursor, Compositor, db, kwin_nominal_size
 
 REVERSE = True # Posy's animation goes in the opposite direction of the gradient
 subprocess_output = False
