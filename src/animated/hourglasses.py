@@ -12,7 +12,7 @@ from pathlib import Path
 # The data module is in the parent directory, so we need to modify the path accordingly
 parent_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(parent_dir))
-from cursors_data import KWinCursor, KWinAnimatedCursor
+from cursors_data import KWinCursor, KWinAnimatedCursor, Compositor, db, kwin_nominal_size
 
 REVERSE = True # Posy's animation goes in the opposite direction of the gradient
 subprocess_output = False
@@ -45,7 +45,6 @@ _ = parser.add_argument("--mono", action="store_true", help="If used, the monoto
 _ = parser.add_argument("--cursor", type=str, help="Picks a specific hourglass cursor to generate. If not present, all cursors will be generated.")
 args: ArgConsts = parser.parse_args(namespace=ArgConsts())
 
-# TODO: Read cursor attributes directly from db?
 def create_hyprland_metadata(cursor: str, frames: int, rate: int, delay: int):
     '''
     Writes metadata files for the cursors following the Hyprcursor metadata
@@ -70,19 +69,18 @@ def create_hyprland_metadata(cursor: str, frames: int, rate: int, delay: int):
     denom = round(1/((1000 / rate) - delay), 4)
     ins_buffer = 1
     frame_list = range(1, frames)
+    data = db["cursors"][cursor]
     with open(f"{cursor}/meta.hl", "w") as f:
         _ = f.write("resize_algorithm = none\n")
-        _ = f.write("hotspot_x = 0\n")
-        _ = f.write("hotspot_y = 0\n")
-        match(cursor):
-            case "progress":
-                _ = f.write("define_override = watch\n")
-            case "wait":
-                _ = f.write("define_override = half_busy\n")
-                _ = f.write("define_override = left_ptr_watch\n")
-                _ = f.write("define_override = background\n")
-            case _:
-                pass
+        hotspot: tuple[float, float] = data.get("hotspot", (0, 0))
+        _ = f.write(f"hotspot_x = {hotspot[0]}\n")
+        _ = f.write(f"hotspot_y = {hotspot[1]}\n\n")
+
+        # Write out all of the cursor's aliases
+        aliases: list[str] = data.get("aliases", [])
+        for alias in aliases:
+            _ = f.write(f"define_override = {alias}\n")
+            
         # Write reference SVG
         _ = f.write(f"define_size = 0, {cursor}.svg, {delay}\n")
         for i in frame_list:
@@ -118,11 +116,15 @@ def create_kwin_metadata(cursor: str, frames: int, rate: int, delay: int):
     ins_buffer = 1
     frame_list = range(1, frames)
 
+    data = db["cursors"][cursor]
+    hotspot: tuple[float, float] = data.get("hotspot", (0, 0))
+    nominal_size = kwin_nominal_size(cursor)
+
     frame_dict: KWinCursor = {
         "filename": f"{cursor}.svg",
-        "nominal_size": 24,
-        "hotspot_x": 0,
-        "hotspot_y": 0,
+        "nominal_size": nominal_size,
+        "hotspot_x": round(hotspot[0] * nominal_size, 2),
+        "hotspot_y": round(hotspot[1] * nominal_size, 2),
         "delay": delay
     }
     animated_cursor: KWinAnimatedCursor = {
@@ -372,7 +374,7 @@ def optimize_frames(cursor: str, total_frames: int):
         remove(f"./{cursor}/{cursor}-{fi}.svg")
         rename(f"./{cursor}/{cursor}-{fi}o.svg", f"./{cursor}/{cursor}-{fi}.svg")
 
-def generate_cursor(cursor: str, total_frames: int, rate: int, compositor: str, mono: bool):
+def generate_cursor(cursor: str, total_frames: int, rate: int, compositor: Compositor, mono: bool):
     '''
     Given the cursor name, total number of frames, and the suggested frame 
     rate, procedures will be run to generate the animated cursor, all the way
@@ -386,7 +388,7 @@ def generate_cursor(cursor: str, total_frames: int, rate: int, compositor: str, 
             The total number of frames present in the animation
         rate (int):
             The suggested frame rate of the cursor, in frames per second.
-        compositor (str):
+        compositor (Compositor):
             The Wayland compositor that the cursors will be made for.
         mono (bool):
             If true, the mono templates will be used instead of the regular templates
@@ -399,9 +401,9 @@ def generate_cursor(cursor: str, total_frames: int, rate: int, compositor: str, 
     debug("\tWriting to metadata file")
     delay: int = math.floor(1000 / rate)
     match(compositor):
-        case "hyprland":    
+        case Compositor.HYPRLAND:    
             create_hyprland_metadata(cursor, total_frames, rate, delay)
-        case "kwin":
+        case Compositor.KWIN:
             create_kwin_metadata(cursor, total_frames, rate, delay)
         case _:
             pass
@@ -421,13 +423,13 @@ def main():
     if args.cursor:
         if args.cursor in CURSORS:
             print(f"Generating selected cursor")
-            generate_cursor(args.cursor, total_frames, args.frame_rate, args.compositor, getattr(args, "mono", False))
+            generate_cursor(args.cursor, total_frames, args.frame_rate, Compositor.from_str(args.compositor), getattr(args, "mono", False))
         else:
             print("ERROR: Invalid cursor name. Accepted values are: wait, progress.")
     else: 
         for cursor in CURSORS.keys():
             print(f"Generating {cursor}")
-            generate_cursor(cursor, total_frames, args.frame_rate, args.compositor, getattr(args, "mono", False))
+            generate_cursor(cursor, total_frames, args.frame_rate, Compositor.from_str(args.compositor), getattr(args, "mono", False))
 
 if __name__ == "__main__":
     main()

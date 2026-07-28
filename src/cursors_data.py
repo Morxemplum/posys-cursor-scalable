@@ -134,6 +134,18 @@ class Compositor(enum.Enum):
     HYPRLAND = "hyprland"
     KWIN = "plasma"
 
+    @staticmethod
+    def from_str(s : str) -> Compositor:
+        match(s.lower()):
+            case "hyprland":
+                return Compositor.HYPRLAND
+            case "kwin":
+                return Compositor.KWIN
+            case "plasma":
+                return Compositor.KWIN
+            case _:
+                return Compositor.UNSUPPORTED
+
 class CursorCollection(TypedDict):
     '''
     Structure for the overall cursor database.
@@ -407,6 +419,27 @@ db : CursorCollection = {
             "build": True,
             "hotspot": (0.5, 0),
             "size": (24, 24)
+        },
+
+        ### ANIMATED CURSORS
+        # Build for animated cursors is always set to False, as animated cursors have custom building procedures.
+
+        "wait": {
+            "build": False,
+            "skip_bimi": False, # If mono, this should be True
+            "size": (24, 24),
+            "aliases": ["half_busy", "left_ptr_watch", "background"],
+            "total_frames": 75, # Mono is 22
+            "animation_speed": 30
+        },
+
+        "progress": {
+            "build": False,
+            "skip_bimi": False, # If mono, this should be True
+            "size": (32, 32),
+            "aliases": ["watch"],
+            "total_frames": 75, # Mono is 22
+            "animation_speed": 30
         },
 
         ### ALTERNATIVE CURSORS
