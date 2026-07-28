@@ -34,15 +34,19 @@ class ArgConsts(argparse.Namespace):
     duration: int # pyright: ignore[reportUninitializedInstanceVariable]
     frame_rate: int # pyright: ignore[reportUninitializedInstanceVariable]
     compositor: str # pyright: ignore[reportUninitializedInstanceVariable]
+    output: str # pyright: ignore[reportUninitializedInstanceVariable]
     mono: bool | None # pyright: ignore[reportUninitializedInstanceVariable]
     cursor: str | None # pyright: ignore[reportUninitializedInstanceVariable]
 
-def create_hyprland_metadata(cursor: str, frames: int, rate: int, delay: int):
+def create_hyprland_metadata(path: str, cursor: str, frames: int, rate: int, delay: int):
     '''
     Writes metadata files for the cursors following the Hyprcursor metadata
     format.
 
     Parameters:
+        path (str):
+            A file path to the folder that contains our artifacts folders, 
+            including metadata
         cursor (str):
             The direct name of the cursor that correlates to a key in the
             database
@@ -62,7 +66,7 @@ def create_hyprland_metadata(cursor: str, frames: int, rate: int, delay: int):
     ins_buffer = 1
     frame_list = range(1, frames)
     data = db["cursors"][cursor]
-    with open(f"{cursor}/meta.hl", "w") as f:
+    with open(f"{path}/{cursor}/meta.hl", "w") as f:
         _ = f.write("resize_algorithm = none\n")
         hotspot: tuple[float, float] = data.get("hotspot", (0, 0))
         _ = f.write(f"hotspot_x = {hotspot[0]}\n")
@@ -84,11 +88,14 @@ def create_hyprland_metadata(cursor: str, frames: int, rate: int, delay: int):
                 final_delay += 1
             _ = f.write(f"define_size = 0, {cursor}-{fi}.svg, {final_delay}\n")
 
-def create_kwin_metadata(cursor: str, frames: int, rate: int, delay: int):
+def create_kwin_metadata(path: str, cursor: str, frames: int, rate: int, delay: int):
     '''
     Writes metadata files for the cursors following the KDE metadata format.
 
     Parameters:
+        path (str):
+            A file path to the folder that contains our artifacts folders, 
+            including metadata
         cursor (str):
             The direct name of the cursor that correlates to a key in the
             database
@@ -132,7 +139,7 @@ def create_kwin_metadata(cursor: str, frames: int, rate: int, delay: int):
         new_frame["filename"] = f"{cursor}-{str(i).zfill(num_digits)}.svg"
         new_frame["delay"] = final_delay
         animated_cursor["frames"].append(new_frame)
-    with open(f"{cursor}/metadata.json", "w") as f:
+    with open(f"{path}/{cursor}/metadata.json", "w") as f:
         _ = f.write(json.dumps(animated_cursor["frames"]))
 
 colors = [  
@@ -145,12 +152,15 @@ colors = [
     "ff0030" # red
 ]
 
-def generate_frames(cursor: str, total_frames : int):
+def generate_frames(path: str, cursor: str, total_frames : int):
     '''
     Given a cursor, generates all of the individual frames that will make up
     the animation.
 
     Parameters:
+        path (str):
+            A file path to the folder that contains our artifacts folders, 
+            including our generated frames
         cursor (str):
             The direct name of the cursor that correlates to a key in the
             database
@@ -233,14 +243,14 @@ def generate_frames(cursor: str, total_frames : int):
             statements.append(f"unselect-by-id:layer{j}")
 
         if i > 0:
-            statements.append(f"export-filename:./{cursor}/{cursor}-{str(i).zfill(num_digits)}.svg")
+            statements.append(f"export-filename:{path}/{cursor}/{cursor}-{str(i).zfill(num_digits)}.svg")
         else:
-            statements.append(f"export-filename:./{cursor}/{cursor}.svg")
+            statements.append(f"export-filename:{path}/{cursor}/{cursor}.svg")
         statements += export_statements
 
         _ = subprocess.run(["inkscape", f"--actions={delimiter.join(statements)}", template], check=True, capture_output=(not subprocess_output))
 
-def generate_frames_mono(cursor: str, total_frames: int):
+def generate_frames_mono(path: str, cursor: str, total_frames: int):
     '''
     Given a cursor, generates all of the individual frames that will make up
     the animation. Similar to generate_frames, but this function has slightly
@@ -248,6 +258,9 @@ def generate_frames_mono(cursor: str, total_frames: int):
     versions of the cursor.
 
     Parameters:
+        path (str):
+            A file path to the folder that contains our artifacts folders, 
+            including our generated frames
         cursor (str):
             The direct name of the cursor that correlates to a key in the
             database
@@ -327,20 +340,23 @@ def generate_frames_mono(cursor: str, total_frames: int):
             statements.append("selection-bottom")
         
         if i > 0:
-            statements.append(f"export-filename:./{cursor}/{cursor}-{str(i).zfill(num_digits)}.svg")
+            statements.append(f"export-filename:{path}/{cursor}/{cursor}-{str(i).zfill(num_digits)}.svg")
         else:
-            statements.append(f"export-filename:./{cursor}/{cursor}.svg")
+            statements.append(f"export-filename:{path}/{cursor}/{cursor}.svg")
         statements += export_statements
 
         _ = subprocess.run(["inkscape", f"--actions={delimiter.join(statements)}", template], check=True, capture_output=(not subprocess_output))
         
-def optimize_frames(cursor: str, total_frames: int):
+def optimize_frames(path: str, cursor: str, total_frames: int):
     '''
     Takes all of the Plain SVGs and optimizes them using the Scour program.
     Applies aggressive optimizations to try and ensure the lowest file size
     possible.
 
     Parameters:
+        path (str):
+            A file path to the folder that contains our artifacts folders, 
+            including the frames to convert and where they will be converted.
         cursor (str):
             The direct name of the cursor that correlates to a key in the
             database
@@ -348,31 +364,33 @@ def optimize_frames(cursor: str, total_frames: int):
             The total number of frames present in the animation
     '''
     num_digits = int(math.log10(total_frames) + 1)
-    scour = ["scour", f"./{cursor}/{cursor}.svg", f"./{cursor}/{cursor}-o.svg", "--set-precision=4", 
+    scour = ["scour", f"{path}/{cursor}/{cursor}.svg", f"{path}/{cursor}/{cursor}-o.svg", "--set-precision=4", 
     "--strip-xml-prolog", "--remove-titles", "--remove-description",
     "--remove-metadata", "--remove-descriptive-elements", 
     "--enable-comment-stripping", "--no-line-breaks", "--strip-xml-space", 
     "--enable-id-stripping", "--shorten-ids"]
 
     _ = subprocess.run(scour, check=True, capture_output=(not subprocess_output))
-    remove(f"./{cursor}/{cursor}.svg")
-    rename(f"./{cursor}/{cursor}-o.svg", f"./{cursor}/{cursor}.svg")
+    remove(f"{path}/{cursor}/{cursor}.svg")
+    rename(f"{path}/{cursor}/{cursor}-o.svg", f"{path}/{cursor}/{cursor}.svg")
 
     for i in range(1, total_frames):
         fi = str(i).zfill(num_digits)
-        scour[1] = f"./{cursor}/{cursor}-{fi}.svg"
-        scour[2] = f"./{cursor}/{cursor}-{fi}o.svg"
+        scour[1] = f"{path}/{cursor}/{cursor}-{fi}.svg"
+        scour[2] = f"{path}/{cursor}/{cursor}-{fi}o.svg"
         _ = subprocess.run(scour, check=True, capture_output=(not subprocess_output))
-        remove(f"./{cursor}/{cursor}-{fi}.svg")
-        rename(f"./{cursor}/{cursor}-{fi}o.svg", f"./{cursor}/{cursor}-{fi}.svg")
+        remove(f"{path}/{cursor}/{cursor}-{fi}.svg")
+        rename(f"{path}/{cursor}/{cursor}-{fi}o.svg", f"{path}/{cursor}/{cursor}-{fi}.svg")
 
-def generate_cursor(cursor: str, total_frames: int, rate: int, compositor: Compositor, mono: bool):
+def generate_cursor(path: str, cursor: str, total_frames: int, rate: int, compositor: Compositor, mono: bool):
     '''
     Given the cursor name, total number of frames, and the suggested frame 
     rate, procedures will be run to generate the animated cursor, all the way
     up to optimizing the SVG file size.
 
     Parameters:
+        path (str):
+            A file path to the folder that will contain our build artifacts
         cursor (str):
             The direct name of the cursor that correlates to a key in the
             database
@@ -386,22 +404,22 @@ def generate_cursor(cursor: str, total_frames: int, rate: int, compositor: Compo
             If true, the mono templates will be used instead of the regular templates
     '''
     if mono:
-        generate_frames_mono(cursor, total_frames)
+        generate_frames_mono(path, cursor, total_frames)
     else:
-        generate_frames(cursor, total_frames)
+        generate_frames(path, cursor, total_frames)
 
     debug("\tWriting to metadata file")
     delay: int = math.floor(1000 / rate)
     match(compositor):
         case Compositor.HYPRLAND:    
-            create_hyprland_metadata(cursor, total_frames, rate, delay)
+            create_hyprland_metadata(path, cursor, total_frames, rate, delay)
         case Compositor.KWIN:
-            create_kwin_metadata(cursor, total_frames, rate, delay)
+            create_kwin_metadata(path, cursor, total_frames, rate, delay)
         case _:
             pass
     debug("\tOptimizing SVG files")
     
-    optimize_frames(cursor, total_frames)
+    optimize_frames(path, cursor, total_frames)
 
 def main():
     '''
@@ -415,19 +433,20 @@ def main():
     if args.cursor:
         if args.cursor in CURSORS:
             print(f"Generating selected cursor")
-            generate_cursor(args.cursor, total_frames, args.frame_rate, Compositor.from_str(args.compositor), getattr(args, "mono", False))
+            generate_cursor(args.output, args.cursor, total_frames, args.frame_rate, Compositor.from_str(args.compositor), getattr(args, "mono", False))
         else:
             print("ERROR: Invalid cursor name. Accepted values are: wait, progress.")
     else: 
         for cursor in CURSORS.keys():
             print(f"Generating {cursor}")
-            generate_cursor(cursor, total_frames, args.frame_rate, Compositor.from_str(args.compositor), getattr(args, "mono", False))
+            generate_cursor(args.output, cursor, total_frames, args.frame_rate, Compositor.from_str(args.compositor), getattr(args, "mono", False))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Individual generation script for the hourglass animated cursors (wait & process)")
     _ = parser.add_argument("duration", type=int, help="How long the animation of the cursor will last (in milliseconds)")
     _ = parser.add_argument("frame_rate", type=int, help="How many frames will be made per second of animation. Delays will be calculated from this value.")
     _ = parser.add_argument("compositor", type=str, help="The Wayland compositor that the cursors will be made for (hyprland, kwin)")
+    _ = parser.add_argument("-o", "--output", type=str, default=".", help="Specify a custom path to output the build artifacts to. Otherwise, it'll build in the same directory.")
     _ = parser.add_argument("--mono", action="store_true", help="If used, the monotone variants will be generated instead of the colorfuls")
     _ = parser.add_argument("--cursor", type=str, help="Picks a specific hourglass cursor to generate. If not present, all cursors will be generated.")
     args: ArgConsts = parser.parse_args(namespace=ArgConsts())
