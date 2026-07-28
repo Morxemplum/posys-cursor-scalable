@@ -37,14 +37,6 @@ class ArgConsts(argparse.Namespace):
     mono: bool | None # pyright: ignore[reportUninitializedInstanceVariable]
     cursor: str | None # pyright: ignore[reportUninitializedInstanceVariable]
 
-parser = argparse.ArgumentParser(description="Individual generation script for the hourglass animated cursors (wait & process)")
-_ = parser.add_argument("duration", type=int, help="How long the animation of the cursor will last (in milliseconds)")
-_ = parser.add_argument("frame_rate", type=int, help="How many frames will be made per second of animation. Delays will be calculated from this value.")
-_ = parser.add_argument("compositor", type=str, help="The Wayland compositor that the cursors will be made for (hyprland, kwin)")
-_ = parser.add_argument("--mono", action="store_true", help="If used, the monotone variants will be generated instead of the colorfuls")
-_ = parser.add_argument("--cursor", type=str, help="Picks a specific hourglass cursor to generate. If not present, all cursors will be generated.")
-args: ArgConsts = parser.parse_args(namespace=ArgConsts())
-
 def create_hyprland_metadata(cursor: str, frames: int, rate: int, delay: int):
     '''
     Writes metadata files for the cursors following the Hyprcursor metadata
@@ -80,7 +72,7 @@ def create_hyprland_metadata(cursor: str, frames: int, rate: int, delay: int):
         aliases: list[str] = data.get("aliases", [])
         for alias in aliases:
             _ = f.write(f"define_override = {alias}\n")
-            
+
         # Write reference SVG
         _ = f.write(f"define_size = 0, {cursor}.svg, {delay}\n")
         for i in frame_list:
@@ -432,4 +424,11 @@ def main():
             generate_cursor(cursor, total_frames, args.frame_rate, Compositor.from_str(args.compositor), getattr(args, "mono", False))
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Individual generation script for the hourglass animated cursors (wait & process)")
+    _ = parser.add_argument("duration", type=int, help="How long the animation of the cursor will last (in milliseconds)")
+    _ = parser.add_argument("frame_rate", type=int, help="How many frames will be made per second of animation. Delays will be calculated from this value.")
+    _ = parser.add_argument("compositor", type=str, help="The Wayland compositor that the cursors will be made for (hyprland, kwin)")
+    _ = parser.add_argument("--mono", action="store_true", help="If used, the monotone variants will be generated instead of the colorfuls")
+    _ = parser.add_argument("--cursor", type=str, help="Picks a specific hourglass cursor to generate. If not present, all cursors will be generated.")
+    args: ArgConsts = parser.parse_args(namespace=ArgConsts())
     main()
