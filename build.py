@@ -1,5 +1,5 @@
 import enum
-from logging import debug
+from logging import basicConfig, debug, INFO, DEBUG
 import json
 import math
 import os
@@ -10,7 +10,8 @@ import subprocess
 import src.animated.hourglasses as hourglasses
 from src.cursors_data import CursorManifest, KWinCursor, Compositor, CursorDesign, ThemeColor, kwin_nominal_size, db
 
-
+LOG_LEVEL = INFO
+basicConfig(level=LOG_LEVEL)
 # If true, the program will continue running even if errors were produced by 
 # any processes run. DO NOT SET TO TRUE UNLESS YOU KNOW WHAT YOU'RE DOING!
 OVERRIDE_PROC_ERRORS: bool = False
@@ -429,7 +430,13 @@ def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: b
                 dir = f"{theme_dir}/{fin_name}"
         
         debug(f"Optimizing SVG: {plain_svg}")
-        result = subprocess.run(["scour", f"{dir}/{plain_svg}", f"{dir}/{output_file_name}", "--set-precision=4", "--strip-xml-prolog", "--remove-titles", "--remove-description", "--remove-metadata", "--remove-descriptive-elements", "--enable-comment-stripping", "--indent=tab", "--no-line-breaks", "--strip-xml-space", "--enable-id-stripping", "--shorten-ids"])
+        result = subprocess.run(
+            ["scour", f"{dir}/{plain_svg}", f"{dir}/{output_file_name}", 
+            "--set-precision=4", "--strip-xml-prolog", "--remove-titles", 
+            "--remove-description", "--remove-metadata", "--remove-descriptive-elements", 
+            "--enable-comment-stripping", "--indent=tab", "--no-line-breaks", 
+            "--strip-xml-space", "--enable-id-stripping", "--shorten-ids"],
+            capture_output=(LOG_LEVEL != DEBUG)) # pyright: ignore[reportUnnecessaryComparison]
         if (result.returncode != 0):
             error = True
     if error and not OVERRIDE_PROC_ERRORS:
