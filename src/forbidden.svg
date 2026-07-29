@@ -7,8 +7,8 @@
    width="24"
    height="24"
    viewBox="0 0 24 24"
-   sodipodi:docname="posys-cursor-forbidden.svg"
-   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   sodipodi:docname="forbidden.svg"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -36,12 +36,12 @@
      inkscape:zoom="22.627417"
      inkscape:cx="1.8340582"
      inkscape:cy="13.943262"
-     inkscape:window-width="1536"
-     inkscape:window-height="792"
+     inkscape:window-width="2560"
+     inkscape:window-height="1364"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer6"
+     inkscape:current-layer="GROUP-8b69c1702a3b8128"
      showguides="true">
     <inkscape:page
        x="0"
@@ -78,12 +78,12 @@
   </sodipodi:namedview>
   <g
      inkscape:groupmode="layer"
-     id="layer6"
+     id="GROUP-8b69c1702a3b8128"
      inkscape:label="Default"
      style="display:inline"
      transform="matrix(1.1363637,0,0,1.1363637,-7.9545513,-9.0909103)">
     <path
-       id="path66"
+       id="5df6148db730b175.mb.p.smi"
        clip-path="url(#clipPath67-7)"
        style="display:inline;fill:#db0000;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:2.11744;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
        sodipodi:type="inkscape:offset"

@@ -7,8 +7,8 @@
    width="32"
    height="32"
    viewBox="0 0 32 32"
-   sodipodi:docname="posys-cursor-dnd-alias.svg"
-   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   sodipodi:docname="dnd-alias.svg"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -34,10 +34,10 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="13.143846"
-     inkscape:cx="10.232925"
-     inkscape:cy="18.601861"
-     inkscape:window-width="1536"
-     inkscape:window-height="792"
+     inkscape:cx="10.156845"
+     inkscape:cy="18.52578"
+     inkscape:window-width="2560"
+     inkscape:window-height="1364"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
@@ -73,18 +73,18 @@
   </sodipodi:namedview>
   <g
      inkscape:groupmode="layer"
-     id="layer1"
+     id="GROUP-8f64d1e16e9a3166"
      inkscape:label="no-tail"
      transform="matrix(0.9716294,0,0,0.9716294,-34.007031,-0.97162791)">
     <path
-       id="path70"
+       id="6f00f28b52d91ede.p.s"
        d="m 0,0 11.12,0.005 -26,26.003 0.002,-36.778 7.866,7.865 C -4.931,-1.054 -2.616,-0.009 0,0"
        style="display:inline;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
        transform="matrix(0.5819806,0,0,-0.5819806,44.24193,17.541366)"
        clip-path="url(#clipPath71-1)" />
   </g>
   <path
-     id="Selection"
+     id="5044174b02fbfad5.mb.p.smi"
      fill="none"
      stroke="#000000"
      stroke-width="0.157601"

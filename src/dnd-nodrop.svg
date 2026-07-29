@@ -7,8 +7,8 @@
    width="32"
    height="32"
    viewBox="0 0 32 32"
-   sodipodi:docname="posys-cursor-dnd-nodrop.svg"
-   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   sodipodi:docname="dnd-nodrop.svg"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -41,15 +41,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="256"
-     inkscape:cx="0.041015625"
-     inkscape:cy="0.58007812"
-     inkscape:window-width="1536"
-     inkscape:window-height="792"
+     inkscape:zoom="22.627417"
+     inkscape:cx="15.821514"
+     inkscape:cy="12.882602"
+     inkscape:window-width="2560"
+     inkscape:window-height="1364"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="svg1"
      showguides="true">
     <inkscape:page
        x="0"
@@ -81,11 +81,11 @@
   </sodipodi:namedview>
   <g
      inkscape:groupmode="layer"
-     id="layer1"
+     id="GROUP-e3d7baa2f8fe7dd4"
      inkscape:label="no-tail"
      transform="matrix(0.45931158,0,0,0.45931158,-16.075906,-0.45931088)">
     <path
-       id="path70-7"
+       id="f688c8ccc9b01536.p.s"
        d="m 0,0 11.12,0.005 -26,26.003 0.002,-36.778 7.866,7.865 C -4.931,-1.054 -2.616,-0.009 0,0"
        style="display:inline;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
        transform="matrix(1.2311239,0,0,-1.2311239,54.550411,35.991669)"
@@ -93,7 +93,7 @@
        inkscape:label="cursor" />
   </g>
   <path
-     id="path66-1"
+     id="678c375d51f2354d.mb.p.smi"
      clip-path="url(#clipPath67-7-6)"
      style="display:inline;fill:#db0000;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:3.31186;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
      inkscape:label="x"

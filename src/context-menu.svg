@@ -7,8 +7,8 @@
    width="32"
    height="32"
    viewBox="0 0 32 32"
-   sodipodi:docname="posys-cursor-context-menu.svg"
-   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   sodipodi:docname="context-menu.svg"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -34,14 +34,14 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="34.682921"
-     inkscape:cx="11.951127"
-     inkscape:cy="28.616391"
-     inkscape:window-width="1536"
-     inkscape:window-height="792"
+     inkscape:cx="11.922295"
+     inkscape:cy="28.61639"
+     inkscape:window-width="2560"
+     inkscape:window-height="1364"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="GROUP-a2f9e4b116b1cde5"
      showguides="true">
     <inkscape:page
        x="0"
@@ -83,37 +83,37 @@
   </sodipodi:namedview>
   <g
      inkscape:groupmode="layer"
-     id="layer1"
+     id="GROUP-a2f9e4b116b1cde5"
      inkscape:label="cursor"
      transform="matrix(0.9716294,0,0,0.9716294,-34.007031,-0.97162791)">
     <path
-       id="path70"
+       id="01398aeff54ddf35.p.s"
        d="m 0,0 11.12,0.005 -26,26.003 0.002,-36.778 7.866,7.865 C -4.931,-1.054 -2.616,-0.009 0,0"
        style="display:inline;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
        transform="matrix(0.56888886,0,0,-0.56888886,44.034032,17.169266)"
        clip-path="url(#clipPath71-1)" />
     <rect
        style="fill:#ffffff;stroke:#000000;stroke-width:1.02919899;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none"
-       id="rect1"
+       id="e660018031635513.o1.s"
        width="9.2238035"
        height="11.994172"
        x="43.038616"
        y="21.397577"
        inkscape:label="menu" />
     <path
-       style="fill:#ffffff;stroke:#000000;stroke-width:1.02919899;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:0"
+       style="fill:none;stroke:#000000;stroke-width:1.02919899;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:0"
        d="m 45.212049,24.005752 c 4.87694,0 4.87694,0 4.87694,0 z"
-       id="path6"
+       id="7ea13dc0e9340ddf.t.s"
        inkscape:label="option" />
     <path
-       style="fill:#ffffff;stroke:#000000;stroke-width:1.02919899;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:0"
+       style="fill:none;stroke:#000000;stroke-width:1.02919899;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:0"
        d="m 45.212049,27.395796 c 4.87694,0 4.87694,0 4.87694,0 z"
-       id="path6-2"
+       id="e7ef60246d796c38.t.s"
        inkscape:label="option-2" />
     <path
        style="fill:#ffffff;stroke:#000000;stroke-width:1.02919899;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:0"
        d="m 45.212049,30.78584 c 4.87694,0 4.87694,0 4.87694,0 z"
-       id="path6-5"
+       id="ee36974cb7a04cdf.t.s"
        inkscape:label="option-3" />
   </g>
 </svg>
