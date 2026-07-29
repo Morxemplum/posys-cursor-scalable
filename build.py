@@ -1,6 +1,7 @@
 import enum
 from logging import debug
 import json
+import math
 import os
 import re
 import shutil
@@ -200,6 +201,19 @@ def bimi_dependency_check():
         print("svgtinyps has been installed successfully!")
         # Mark the newly installed program as runnable
         _ = subprocess.run(["chmod", "a+x", "./svgtinyps"])
+
+def is_animated(cursor: CursorDesign) -> bool:
+    '''
+    Checks if the cursor implements the two attributes needed for it to be an
+    animated cursor.
+
+    cursor (CursorDesign):
+        The cursor to assess
+    
+    Return:
+        Whether the cursor has the metadata to suggest it is animated
+    '''
+    return ("total_frames" in cursor) and ("animation_speed" in cursor)
 
 def create_hyprland_metadata(directory: str, cursor: str):
     '''
@@ -470,17 +484,46 @@ def convert_to_qt(theme_dir: str):
     '''
     error: bool = False
     for name, cursor in db["cursors"].items():
-        if not cursor["build"] or cursor.get("skip_bimi", False):
+        if (not cursor["build"] and not is_animated(cursor)) or cursor.get("skip_bimi", False):
             continue
         fin_name: str = cursor.get("out_file", name)
-        optimized_svg: str = f"{fin_name}-optimized.svg"
-        output_file_name = f"{fin_name}.svg"
         dir = f"{theme_dir}/cursors_scalable/{fin_name}"
-        
-        debug(f"Converting SVG: {optimized_svg}")
-        result = subprocess.run(["./svgtinyps", "convert", f"{dir}/{optimized_svg}", f"{dir}/{output_file_name}", f"--title=\"{db['manifest']['name']}\""])
-        if (result.returncode != 0):
-            error = True
+        if (not is_animated(cursor)):
+            optimized_svg: str = f"{fin_name}-optimized.svg"
+            output_file = f"{fin_name}.svg"
+
+            debug(f"Converting SVG: {optimized_svg}")
+            result = subprocess.run(["./svgtinyps", "convert", f"{dir}/{optimized_svg}", f"{dir}/{output_file}", f"--title=\"{db['manifest']['name']}\""])
+            if (result.returncode != 0):
+                error = True
+        else:
+            file = f"{fin_name}.svg"
+            staging_file = f"{fin_name}-c.svg"
+
+            debug(f"Converting SVG: {file}")
+            result = subprocess.run(["./svgtinyps", "convert", f"{dir}/{file}", f"{dir}/{staging_file}", f"--title=\"{db['manifest']['name']}\""])
+            if (result.returncode != 0):
+                error = True
+            # For animated cursors, we'll automatically clean up the artifacts as they are more numerous
+            os.remove(f"{dir}/{file}")
+            os.rename(f"{dir}/{staging_file}", f"{dir}/{file}")
+
+            assert("total_frames" in cursor)
+            frames = cursor["total_frames"]
+            digits = int(math.log10(frames) + 1)
+            for i in range(1, frames):
+                fi = str(i).zfill(digits)
+                file = f"{fin_name}-{fi}.svg"
+                staging_file = f"{fin_name}-{fi}-c.svg"
+
+                debug(f"\tConverting frame {fi}")
+                result = subprocess.run(["./svgtinyps", "convert", f"{dir}/{file}", f"{dir}/{staging_file}", f"--title=\"{db['manifest']['name']}\""])
+                if (result.returncode != 0):
+                    error = True
+                    break # For animated cursors, don't complete conversion
+                os.remove(f"{dir}/{file}")
+                os.rename(f"{dir}/{staging_file}", f"{dir}/{file}")
+
     if error and not OVERRIDE_PROC_ERRORS:
         print("One or more errors have occurred while converting the optimized SVGs. Can not continue with building until errors have been resolved.")
         exit(1)
@@ -531,7 +574,7 @@ def create_alias_sym_links(theme_dir: str):
             The file path to the folder that is holding our cursor theme
     '''
     for name, cursor in db["cursors"].items():
-        if not cursor["build"] or (not "aliases" in cursor):
+        if (not cursor["build"] and not is_animated(cursor)) or (not "aliases" in cursor):
             continue
         fin_name: str = cursor.get("out_file", name)
         abs_proc = subprocess.run(["realpath", f"{theme_dir}/cursors_scalable/{fin_name}"], capture_output=True, text=True)
