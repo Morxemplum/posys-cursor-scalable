@@ -8,7 +8,7 @@ import shutil
 import subprocess
 
 import src.animated.hourglasses as hourglasses
-from src.cursors_data import CursorManifest, KWinCursor, Compositor, CursorDesign, ThemeColor, kwin_nominal_size, db
+from src.cursors_data import CursorManifest, KWinCursor, Compositor, CursorDesign, ThemeColor, ThemePalette, get_theme_palette, kwin_nominal_size, db
 
 LOG_LEVEL = INFO
 basicConfig(level=LOG_LEVEL)
@@ -56,7 +56,7 @@ def confirmation_prompt(prompt: str, default: ConfirmationDefault = Confirmation
                 else:
                     print("\nInvalid answer!")
 
-def select_prompt(prompt: str, option_labels: list[str]) -> int:
+def select_prompt(prompt: str, option_labels: list[str], default: int | None = None) -> int:
     '''
     A specific type of user prompt where a list of options are given, and user
     must give a numeric answer to indicate their selection.
@@ -67,9 +67,11 @@ def select_prompt(prompt: str, option_labels: list[str]) -> int:
         option_labels: 
             The string labels that will be displayed next to their numbers for
             easier reading.
-    
+        default (Optional):
+            If given, this will be the value returned when the user chooses to
+            not offer an answer.
     Returns:
-        The option selected by the user
+        The option selected by the user (or the default option, if one is given)
     '''
     while True:
         print(prompt)
@@ -78,6 +80,12 @@ def select_prompt(prompt: str, option_labels: list[str]) -> int:
             print(f"{i + 1}. {label}")
         print()
         answer: str = input("Select your option: ")
+        if (len(answer) == 0 or answer.isspace()):
+            if default:
+                return default
+            else:
+                print("An answer must be provided")
+                continue
         if not answer.isnumeric():
             print(f"Insufficient answer \"{answer}\" (Answer must be numeric)")
             continue
@@ -355,10 +363,108 @@ def create_cursor_metadatas(theme_dir: str, compositor: Compositor):
         os.makedirs(output_dir, exist_ok=True)
         create_metadata_file(compositor, output_dir, fin_name)
 
+def query_svg(source_svg: str) -> list[str]:
+    '''
+    Using the query-all flag, fetches and filters a list of all the object IDs
+    within a source SVG through the usage of inkscape. The header SVG object is
+    filtered immediately, along with layers that start with "GROUP" and "NOOP",
+    leaving with IDs that suggest that they link to paths.
+
+    Parameters:
+        source_svg (str):
+            The file name of the template SVG (Must be in the "src" folder)
+
+    Returns:
+        A list of all the names of path layer IDs in the SVGs.
+    '''
+    svg = f"./src/{source_svg}"
+    results = subprocess.run(["inkscape", "--query-all", svg], capture_output=True)
+    
+    raw_lines = results.stdout.decode("utf-8").splitlines()
+    ids: list[str] = []
+    for i in range(1, len(raw_lines)):
+        line = raw_lines[i]
+        if line.startswith("GROUP") or line.startswith("NOOP"):
+            continue
+        elements = line.split(",")
+        if len(elements) == 0:
+            continue
+        ids.append(elements[0])
+    return ids
+
+def theme_layer(id: str, palette: ThemePalette) -> list[str]:
+    '''
+    Observes the formatted ID name of a layer and creates the Inkscape actions
+    that would modify the layer to match the theme's palette.
+
+    Parameters:
+        id (str):
+            The full ID of the layer named in the SVG to apply theming to. ID
+            must follow a specific format for the theming to work.
+        palette (ThemePalette):
+            The color palette that reflects the cursor's theme wanted
+    
+    Returns:
+        A sequential list of Inkscape actions that, when ran, will change the
+        layer to reflect the colors in the palette
+    '''
+    components = id.split(".")
+    # Required elements are missing for theming to properly apply
+    if len(components) < 3:
+        print(f"Error: Required elements are missing to apply theming on layer {id}")
+        return []
+
+    fill = components[1]
+    stroke = components[2]
+    actions: list[str] = [f"select-by-id:{id}"]
+
+    # TODO: Implement optional attributes that would change fill and stroke (skin tone, mono inverse)
+
+    match(fill):
+        case "p":
+            actions.append(f"object-set-property:fill, {palette["primary"]}")
+        case "s":
+            actions.append(f"object-set-property:fill, {palette["secondary"]}")
+        case "t":
+            actions.append(f"object-set-property:fill, none")
+        case "mb":
+            if palette["mono"]:
+                actions.append("object-set-property:fill, #000000")
+        case "mw":
+            if palette["mono"]:
+                actions.append("object-set-property:fill, #ffffff")
+        case text if re.match(r"o\d+$", text):
+            index = int(fill[1:]) - 1
+            actions.append(f"object-set-property:fill, {palette["overrides"][index]}")
+        case _:
+            pass
+    
+    match(stroke):
+        case "p":
+            actions.append(f"object-set-property:stroke, {palette["primary"]}")
+        case "s":
+            actions.append(f"object-set-property:stroke, {palette["secondary"]}")
+        case "t":
+            actions.append(f"object-set-property:stroke, none")
+        case "mb":
+            if palette["mono"]:
+                actions.append("object-set-property:stroke, #000000")
+        case "mw":
+            if palette["mono"]:
+                actions.append("object-set-property:stroke, #ffffff")
+        case text if re.match(r"o\d+$", text):
+            index = int(stroke[1:])
+            actions.append(f"object-set-property:stroke, {palette["overrides"][index]}")
+        case _:
+            pass
+    
+    actions.append(f"unselect-by-id:{id}")
+    return actions
+
 def create_plain_svgs(theme_dir: str, compositor: Compositor):
     '''
     Creates all of the Plain SVGs from the Inkscape/Source SVGs, stripping
-    Inkscape data and (soon) applying theming to the user's preference.
+    Inkscape data and applying theming to the user's preference.
 
     Parameters:
         theme_dir (str):
@@ -388,12 +494,29 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
 
         debug(f"Generating Plain SVG for {name}")
         os.makedirs(output_dir, exist_ok=True)
-        results = subprocess.run(["inkscape", "--export-type=svg", "--export-plain-svg", f"--export-filename={f"{output_dir}/{output_file_name}"}", file_path], capture_output=True)
+        results: subprocess.CompletedProcess[bytes]
+        if (db["theme"] == ThemeColor.WHITE):
+            results = subprocess.run(["inkscape", "--export-type=svg", "--export-plain-svg", f"--export-filename={f"{output_dir}/{output_file_name}"}", file_path], capture_output=True)
+        else:
+            actions: list[str] = []
+            ids = query_svg(input_file_name)
+            palette = get_theme_palette(db["theme"])
+            for id in ids:
+                if id.find(".") < 0:
+                    continue
+                actions.extend(theme_layer(id, palette))
+            actions.append("export-type:svg")
+            actions.append("export-plain-svg")
+            actions.append(f"export-filename:{f"{output_dir}/{output_file_name}"}")
+            actions.append("export-do")
+            results = subprocess.run(["inkscape", f"--actions={";".join(actions)}", file_path], capture_output=True)
+        
         # Inkscape CLI, even if you run into a fatal error, will still return a 0 exit code. We must look at stderr's len to determine failure.
         if len(results.stderr) > 0:
             error = True
             # Convert the raw string into a formatted string, then print it.
             print(str(results.stderr).encode("utf-8").decode("unicode_escape"))
+
     if error and not OVERRIDE_PROC_ERRORS:
         print("One or more errors have occurred while making the Plain SVGs. Can not continue with building until errors have been resolved.")
         exit(1)
@@ -620,17 +743,28 @@ def main():
 
     print()
 
+    # TODO: Some extras are incompatible with a mono theme. Refine the extra cursor selection process to remove such options if a mono theme is selected.
     available_extras: list[str] = ["Posy's Refreshed Cursors (V2 Designs)", "Early Xerox default cursor", "Wrong finger click", "Winhelp (Colored Help)", "Social cursors (person & pin)", "Skin toned hands"]
 
-    # TODO: Support theming
-    # print("\nChoose which theme you would like for your cursors")
-    # print("\n1. White\n2. Black\n3. Mono\n4. Mono Black\n")
- 
-    # theme_option: str = input("Option (default=1): ")
-    # if theme_option.isspace():
-    #     option = 1
-    # else:
-    #     option = int(theme_option)
+    theme_opt = select_prompt("Choose which theme you would like for your cursors (or just press Enter for \"White\")", ["White", "Black", "Mono", "Mono Black"], 1)
+    match(theme_opt):
+        case 1:
+            db["theme"] = ThemeColor.WHITE
+        case 2:
+            db["theme"] = ThemeColor.BLACK
+        case 3:
+            db["theme"] = ThemeColor.MONO
+        case 4:
+            db["theme"] = ThemeColor.MONO_BLACK
+        case _:
+            pass
+    
+    # Mono themes change fundamental properties of the hourglass cursors, so we must apply those changes
+    if (db["theme"] == ThemeColor.MONO or db["theme"] == ThemeColor.MONO_BLACK):
+        db["cursors"]["wait"]["skip_bimi"] = True
+        db["cursors"]["wait"]["total_frames"] = 22
+        db["cursors"]["progress"]["skip_bimi"] = True
+        db["cursors"]["progress"]["total_frames"] = 22
 
     extra_opts: set[int] = multiselect_prompt("This theme offers extra cursors and alternatives on top of the regular selection. Here is a list of all the available extra cursors.", available_extras)
 

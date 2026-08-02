@@ -126,6 +126,17 @@ class ThemeColor(enum.IntEnum):
     MONO = 2
     MONO_BLACK = 3
 
+class ThemePalette(TypedDict):
+    '''
+    The palette full of RGB colors (in hex format) that will be used to apply
+    the colors to SVGs to fall in line with the dictated theme
+    '''
+    primary: str
+    secondary: str
+    mono: bool
+    tone: NotRequired[str]
+    overrides: list[str]
+
 class Compositor(enum.Enum):
     '''
     This includes all of the Wayland compositors that support vector cursors.
@@ -162,6 +173,23 @@ class CursorCollection(TypedDict):
     manifest: CursorManifest
     cursors: dict[str, CursorDesign]
     theme: ThemeColor
+
+def get_theme_palette(theme: ThemeColor) -> ThemePalette:
+    match(theme):
+        case ThemeColor.WHITE | ThemeColor.MONO:
+            return {
+                "primary": "#ffffff",
+                "secondary": "#000000",
+                "mono": theme == ThemeColor.MONO,
+                "overrides": ["#ffffff"]
+            }
+        case ThemeColor.BLACK | ThemeColor.MONO_BLACK:
+            return {
+                "primary": "#000000",
+                "secondary": "#ffffff",
+                "mono": theme == ThemeColor.MONO_BLACK,
+                "overrides": ["#3f3f3f"]
+            }
 
 def kwin_nominal_size(cursor: str) -> int:
     '''
