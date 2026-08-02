@@ -495,7 +495,7 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
         debug(f"Generating Plain SVG for {name}")
         os.makedirs(output_dir, exist_ok=True)
         results: subprocess.CompletedProcess[bytes]
-        if (db["theme"] == ThemeColor.WHITE):
+        if (db["theme"] == ThemeColor.WHITE or cursor.get("skip_theming", False)):
             results = subprocess.run(["inkscape", "--export-type=svg", "--export-plain-svg", f"--export-filename={f"{output_dir}/{output_file_name}"}", file_path], capture_output=True)
         else:
             actions: list[str] = []

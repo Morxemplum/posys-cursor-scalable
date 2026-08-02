@@ -68,6 +68,11 @@ class CursorDesign(TypedDict):
             WARNING: Do not have cursors skip BIMI conversion unless you can
             verify that the SVG files are compliant with 1.2 Tiny. This should
             be treated as a last resort!
+        skip_theming (bool, Optional):
+            If set to True, this will skip theming procedures on the cursor.
+            Defaults to False. This attribute is meant as a slight performance
+            optimization for the few designs that remain the same throughout
+            all different themes.
 
         total_frames (int, optional):
             If this is an animated cursor, this functionally lists how many
@@ -85,6 +90,7 @@ class CursorDesign(TypedDict):
     size: tuple[int, int]
     build: bool
     skip_bimi: NotRequired[bool]
+    skip_theming: NotRequired[bool]
 
     total_frames: NotRequired[int]
     animation_speed: NotRequired[int]
@@ -249,6 +255,7 @@ db : CursorCollection = {
 
         "beam": {
             "build": True,
+            "skip_theming": True,
             "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["text", "ibeam", "xterm"]
@@ -257,6 +264,7 @@ db : CursorCollection = {
         "vertical-text": {
             "build": True,
             "src_file": "hbeam",
+            "skip_theming": True,
             "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["vertical_text", "hbeam"]
@@ -279,9 +287,10 @@ db : CursorCollection = {
 
         "precision": {
             "build": True,
+            "skip_theming": True,
             # The gradients in this design are 1.2 Tiny compliant. <stop> is allowed in 1.2 Tiny
             # BIMI for some stupid reason doesn't allow <stop>, making gradients completely pointless.
-            "skip_bimi": True, 
+            "skip_bimi": True,
             "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["cross", "cross_reverse", "diamond_cross", "tcross", "crosshair"]
@@ -492,6 +501,7 @@ db : CursorCollection = {
         "beam-v2": {
             "build": False,
             "extra": True,
+            "skip_theming": True,
             "out_file": "beam",
             "size": (24, 24),
             "aliases": ["text", "ibeam", "xterm"]
@@ -500,6 +510,7 @@ db : CursorCollection = {
         "precision-v2": {
             "build": False,
             "extra": True,
+            "skip_theming": True,
             "out_file": "precision",
             "hotspot": (0.5, 0.5),
             "size": (24, 24),
