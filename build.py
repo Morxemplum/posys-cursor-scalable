@@ -392,6 +392,28 @@ def query_svg(source_svg: str) -> list[str]:
         ids.append(elements[0])
     return ids
 
+def invert_color(c: str) -> str:
+    '''
+    Given an input RGB color (in hexadecimal format), inverts the color to an
+    output color 
+
+    Parameters:
+        c (str):
+            The input color string (in hexadecimal RGB)
+    
+    Returns:
+        An RGB color in hexadecimal, inverted
+    '''
+    r = int(c[0:2], base=16)
+    g = int(c[2:4], base=16)
+    b = int(c[4:], base=16)
+
+    r = 255 - r
+    g = 255 - g
+    b = 255 - b
+
+    return hex(b + (g << 8) + (r << 16))[2:]
+
 def theme_layer(id: str, palette: ThemePalette) -> list[str]:
     '''
     Observes the formatted ID name of a layer and creates the Inkscape actions
@@ -415,48 +437,64 @@ def theme_layer(id: str, palette: ThemePalette) -> list[str]:
         return []
 
     fill = components[1]
+    fs = False # We don't want to set fill color more than once
     stroke = components[2]
     actions: list[str] = [f"select-by-id:{id}"]
 
-    # TODO: Implement optional attributes that would change fill and stroke (skin tone, mono inverse)
-
-    match(fill):
-        case "p":
-            actions.append(f"object-set-property:fill, {palette["primary"]}")
-        case "s":
-            actions.append(f"object-set-property:fill, {palette["secondary"]}")
-        case "t":
-            actions.append(f"object-set-property:fill, none")
-        case "mb":
-            if palette["mono"]:
-                actions.append("object-set-property:fill, #000000")
-        case "mw":
-            if palette["mono"]:
-                actions.append("object-set-property:fill, #ffffff")
-        case text if re.match(r"o\d+$", text):
-            index = int(fill[1:]) - 1
-            actions.append(f"object-set-property:fill, {palette["overrides"][index]}")
-        case _:
-            pass
+    optionals: list[str] = []
+    if len(components) > 3:
+        optionals = components[3:]
     
-    match(stroke):
-        case "p":
-            actions.append(f"object-set-property:stroke, {palette["primary"]}")
-        case "s":
-            actions.append(f"object-set-property:stroke, {palette["secondary"]}")
-        case "t":
-            actions.append(f"object-set-property:stroke, none")
-        case "mb":
-            if palette["mono"]:
-                actions.append("object-set-property:stroke, #000000")
-        case "mw":
-            if palette["mono"]:
-                actions.append("object-set-property:stroke, #ffffff")
-        case text if re.match(r"o\d+$", text):
-            index = int(stroke[1:])
-            actions.append(f"object-set-property:stroke, {palette["overrides"][index]}")
-        case _:
-            pass
+    if ("sk" in optionals and "tone" in palette):
+        actions.append(f"object-set-property:fill, {palette["tone"]}")
+        fs = True
+    elif (not "fmi" in optionals):
+        fs = True
+        match(fill):
+            case "p":
+                actions.append(f"object-set-property:fill, {palette["primary"]}")
+            case "s":
+                actions.append(f"object-set-property:fill, {palette["secondary"]}")
+            case "t":
+                actions.append(f"object-set-property:fill, none")
+            case "mb":
+                if palette["mono"]:
+                    actions.append("object-set-property:fill, #000000")
+            case "mw":
+                if palette["mono"]:
+                    actions.append("object-set-property:fill, #ffffff")
+            case text if re.match(r"o\d+$", text):
+                index = int(fill[1:]) - 1
+                actions.append(f"object-set-property:fill, {palette["overrides"][index]}")
+            case _:
+                fs = False
+    
+    if not ("smi" in optionals and palette["mono"]):
+        match(stroke):
+            case "p":
+                actions.append(f"object-set-property:stroke, {palette["primary"]}")
+            case "s":
+                actions.append(f"object-set-property:stroke, {palette["secondary"]}")
+            case "t":
+                actions.append(f"object-set-property:stroke, none")
+            case "mb":
+                if palette["mono"]:
+                    actions.append("object-set-property:stroke, #000000")
+            case "mw":
+                if palette["mono"]:
+                    actions.append("object-set-property:stroke, #ffffff")
+            case text if re.match(r"o\d+$", text):
+                index = int(stroke[1:])
+                actions.append(f"object-set-property:stroke, {palette["overrides"][index]}")
+            case _:
+                pass
+    else:
+        inverted = invert_color(palette["primary"][1:])
+        actions.append(f"object-set-property:stroke, #{inverted}")
+
+    if ("fmi" in optionals and not fs and palette["mono"]):
+        inverted = invert_color(palette["secondary"][1:])
+        actions.append(f"object-set-property:fill, #{inverted}")
     
     actions.append(f"unselect-by-id:{id}")
     return actions
@@ -473,6 +511,15 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
             The compositor for which the theme is structured around
     '''
     error: bool = False
+    palette = get_theme_palette(db["theme"])
+    # Surely there's a cleaner way to write this?
+    has_tone: bool = ("tone_light" in db["manifest"]["tags"]) or \
+                ("tone_medium" in db["manifest"]["tags"]) or \
+                ("tone_dark" in db["manifest"]["tags"])
+    if has_tone:
+        palette["tone"] = "#eed9ca" if "tone_light" in db["manifest"]["tags"] else \
+                        "#caae99" if "tone_medium" in db["manifest"]["tags"] else \
+                        "#906545" if "tone_dark" in db["manifest"]["tags"] else "#000000"
 
     for name, cursor in db["cursors"].items():
         if not cursor["build"]:
@@ -495,12 +542,11 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
         debug(f"Generating Plain SVG for {name}")
         os.makedirs(output_dir, exist_ok=True)
         results: subprocess.CompletedProcess[bytes]
-        if (db["theme"] == ThemeColor.WHITE or cursor.get("skip_theming", False)):
+        if (db["theme"] == ThemeColor.WHITE and not has_tone) or cursor.get("skip_theming", False):
             results = subprocess.run(["inkscape", "--export-type=svg", "--export-plain-svg", f"--export-filename={f"{output_dir}/{output_file_name}"}", file_path], capture_output=True)
         else:
             actions: list[str] = []
             ids = query_svg(input_file_name)
-            palette = get_theme_palette(db["theme"])
             for id in ids:
                 if id.find(".") < 0:
                     continue
@@ -801,7 +847,16 @@ def main():
     
     # Skin toned hands
     if 6 in extra_opts:
-        print("Skin tones has not yet been implemented! Stay tuned")
+        tone_opt = select_prompt("Which skin tone would you like to choose?", ["Light", "Medium", "Dark"])
+        match(tone_opt):
+            case 1:
+                db["manifest"]["tags"].append("tone_light")
+            case 2:
+                db["manifest"]["tags"].append("tone_medium")
+            case 3:
+                db["manifest"]["tags"].append("tone_dark")
+            case _:
+                pass
 
     
     print(f"{procedure_cnt}. Creating appropriate theme directories")
