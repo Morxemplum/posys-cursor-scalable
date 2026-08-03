@@ -361,7 +361,7 @@ def create_cursor_metadatas(theme_dir: str, compositor: Compositor):
 
         debug(f"Generating metadata for {name}")
         os.makedirs(output_dir, exist_ok=True)
-        create_metadata_file(compositor, output_dir, fin_name)
+        create_metadata_file(compositor, output_dir, name)
 
 def query_svg(source_svg: str) -> list[str]:
     '''
