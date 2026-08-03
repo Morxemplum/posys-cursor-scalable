@@ -14,7 +14,7 @@ from pathlib import Path
 repo_dir = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(repo_dir))
 # We must maintain the same namespace as the main build script, otherwise the Python interpreter will bug out on certain logic.
-from src.cursors_data import KWinCursor, KWinAnimatedCursor, Compositor, ThemeColor, db, kwin_nominal_size
+from src.cursors_data import KWinCursor, KWinAnimatedCursor, Compositor, ThemeColor, db
 
 REVERSE = True # Posy's animation goes in the opposite direction of the gradient
 subprocess_output = False
@@ -140,7 +140,7 @@ def create_kwin_metadata(path: str, cursor: str, frames: int, rate: int, delay: 
 
     data = db["cursors"][cursor]
     hotspot: tuple[float, float] = data.get("hotspot", (0, 0))
-    nominal_size = kwin_nominal_size(cursor)
+    nominal_size = db["nominal_size"]
 
     frame_dict: KWinCursor = {
         "filename": f"{cursor}.svg",

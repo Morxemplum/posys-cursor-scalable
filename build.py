@@ -9,7 +9,7 @@ import shutil
 import subprocess
 
 import src.animated.hourglasses as hourglasses
-from src.cursors_data import CursorManifest, KWinCursor, Compositor, CursorDesign, ThemeColor, ThemePalette, get_theme_palette, kwin_nominal_size, db
+from src.cursors_data import CursorManifest, KWinCursor, Compositor, CursorDesign, ThemeColor, ThemePalette, get_theme_palette, db
 
 LOG_LEVEL = INFO
 basicConfig(level=LOG_LEVEL)
@@ -378,8 +378,8 @@ def create_kwin_metadata(directory: str, cursor: str):
             The direct name of the cursor that correlates to a key in the
             database
     '''
-    data: CursorDesign = db['cursors'][cursor]
-    nominal_size: int = kwin_nominal_size(cursor)
+    data: CursorDesign = db["cursors"][cursor]
+    nominal_size: int = db["nominal_size"]
     hotspot: tuple[float, float] = data.get("hotspot", (0, 0))
     # Translate our data into a dictionary following JSON and KDE's formatting
     staging: KWinCursor = {

@@ -186,10 +186,13 @@ class CursorCollection(TypedDict):
             design name
         theme (ThemeColor):
             The color of the theme.
+        nominal_size (int):
+            The base size that all cursors will be matched to.
     '''
     manifest: CursorManifest
     cursors: dict[str, CursorDesign]
     theme: ThemeColor
+    nominal_size: int
 
 def get_theme_palette(theme: ThemeColor) -> ThemePalette:
     match(theme):
@@ -208,21 +211,6 @@ def get_theme_palette(theme: ThemeColor) -> ThemePalette:
                 "overrides": ["#3f3f3f"]
             }
 
-def kwin_nominal_size(cursor: str) -> int:
-    '''
-    A helper function that specifically takes the size attribute and crushes it
-    to a singular number for the KWin compositor.
-
-    Parameters:
-        cursor: The name of the cursor to get the size of
-
-    Returns:
-        The largest number in the size attribute 
-    '''
-    if not cursor in db["cursors"]:
-        return -1
-    return max(db["cursors"][cursor]["size"])
-
 # Some attributes will be later modified by scripts to tailor user preferences
 db : CursorCollection = {
     "manifest": {
@@ -235,6 +223,7 @@ db : CursorCollection = {
     },
     
     "theme": ThemeColor.WHITE,
+    "nominal_size": 24,
 
     "cursors": {
         "default": {
