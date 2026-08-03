@@ -412,7 +412,7 @@ def invert_color(c: str) -> str:
     g = 255 - g
     b = 255 - b
 
-    return hex(b + (g << 8) + (r << 16))[2:]
+    return f"#{hex(b + (g << 8) + (r << 16))[2:]}"
 
 def theme_layer(id: str, palette: ThemePalette) -> list[str]:
     '''
@@ -437,8 +437,9 @@ def theme_layer(id: str, palette: ThemePalette) -> list[str]:
         return []
 
     fill = components[1]
-    fs = False # We don't want to set fill color more than once
+    fill_c = ""
     stroke = components[2]
+    stroke_c = ""
     actions: list[str] = [f"select-by-id:{id}"]
 
     optionals: list[str] = []
@@ -446,56 +447,58 @@ def theme_layer(id: str, palette: ThemePalette) -> list[str]:
         optionals = components[3:]
     
     if ("sk" in optionals and "tone" in palette):
-        actions.append(f"object-set-property:fill, {palette["tone"]}")
-        fs = True
+        fill_c = palette["tone"]
     elif (not "fmi" in optionals):
-        fs = True
         match(fill):
             case "p":
-                actions.append(f"object-set-property:fill, {palette["primary"]}")
+                fill_c = palette["primary"]
             case "s":
-                actions.append(f"object-set-property:fill, {palette["secondary"]}")
+                fill_c = palette["secondary"]
             case "t":
-                actions.append(f"object-set-property:fill, none")
+                fill_c = "none"
             case "mb":
                 if palette["mono"]:
-                    actions.append("object-set-property:fill, #000000")
+                    fill_c = "#000000"
             case "mw":
                 if palette["mono"]:
-                    actions.append("object-set-property:fill, #ffffff")
+                    fill_c = "#ffffff"
             case text if re.match(r"o\d+$", text):
                 index = int(fill[1:]) - 1
-                actions.append(f"object-set-property:fill, {palette["overrides"][index]}")
+                fill_c = palette["overrides"][index]
             case _:
-                fs = False
-    
+                pass
+
     if not ("smi" in optionals and palette["mono"]):
         match(stroke):
             case "p":
-                actions.append(f"object-set-property:stroke, {palette["primary"]}")
+                stroke_c = palette["primary"]
             case "s":
-                actions.append(f"object-set-property:stroke, {palette["secondary"]}")
+                stroke_c = palette["secondary"]
             case "t":
-                actions.append(f"object-set-property:stroke, none")
+                stroke_c = "none"
             case "mb":
                 if palette["mono"]:
-                    actions.append("object-set-property:stroke, #000000")
+                    stroke_c = "#000000"
             case "mw":
                 if palette["mono"]:
-                    actions.append("object-set-property:stroke, #ffffff")
+                    stroke_c = "#ffffff"
             case text if re.match(r"o\d+$", text):
                 index = int(stroke[1:])
-                actions.append(f"object-set-property:stroke, {palette["overrides"][index]}")
+                stroke_c = palette["overrides"][index]
             case _:
                 pass
     else:
-        inverted = invert_color(palette["primary"][1:])
-        actions.append(f"object-set-property:stroke, #{inverted}")
-
-    if ("fmi" in optionals and not fs and palette["mono"]):
-        inverted = invert_color(palette["secondary"][1:])
-        actions.append(f"object-set-property:fill, #{inverted}")
+        stroke_c = invert_color(fill_c[1:])
     
+    if ("fmi" in optionals and len(fill_c) == 0 and palette["mono"]):
+        fill_c = invert_color(stroke_c[1:])
+    
+    if len(fill_c) > 0:
+        actions.append(f"object-set-property:fill, {fill_c}")
+    
+    if len(stroke_c) > 0:
+        actions.append(f"object-set-property:stroke, {stroke_c}")
+
     actions.append(f"unselect-by-id:{id}")
     return actions
 
