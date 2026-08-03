@@ -251,6 +251,9 @@ def format_title_tags() -> str:
             case ThemeColor.MONO_BLACK:
                 title_tags.append("Mono Black")
     
+    if (len(tags) == 0 and len(title_tags) == 0):
+        return ""
+    
     # For extra cursors, there is a specific order we want to go in and only certain extras are worthy of distinction
     
     # The first extra is the skin tone cursors.
