@@ -881,15 +881,15 @@ def create_alias_sym_links(theme_dir: str):
         if (not cursor["build"] and not is_animated(cursor)) or (not "aliases" in cursor):
             continue
         fin_name: str = cursor.get("out_file", name)
-        abs_proc = subprocess.run(["realpath", f"{theme_dir}/cursors_scalable/{fin_name}"], capture_output=True, text=True)
-        abs_dir: str = abs_proc.stdout.strip()
+        # Path should be relative to where the symlink is
+        rel_dir: str = f"./{fin_name}"
         for alias in cursor["aliases"]:
             sym_link: str = f"{theme_dir}/cursors_scalable/{alias}"
             # Do not recreate the symlink if it already exists, otherwise we will get errors
             if os.path.islink(sym_link):
                 continue
             debug(f"Creating alias \"{alias}\" for \"{cursor}\"")
-            _ = subprocess.run(["ln", "-s", abs_dir, sym_link])
+            _ = subprocess.run(["ln", "-s", rel_dir, sym_link])
 
 def apply_extras(option_labels : list[str], selected: set[int]):
     '''
