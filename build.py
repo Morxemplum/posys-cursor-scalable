@@ -442,9 +442,23 @@ def theme_layer(id: str, palette: ThemePalette) -> list[str]:
     stroke_c = ""
     actions: list[str] = [f"select-by-id:{id}"]
 
+    debug(f"\tUID: {components[0]}, FILL: {fill}, STROKE: {stroke}")
+
     optionals: list[str] = []
     if len(components) > 3:
         optionals = components[3:]
+        if (LOG_LEVEL == DEBUG):  # pyright: ignore[reportUnnecessaryComparison]
+            fulltext_optionals: list[str] = []
+            if "sk" in optionals:
+                if "tone" in palette:
+                    fulltext_optionals.append("Skinned (Enabled)")
+                else:
+                    fulltext_optionals.append("Skinned (Disabled)")
+            if "fmi" in optionals:
+                fulltext_optionals.append("Fill mono inverse")
+            if "smi" in optionals:
+                fulltext_optionals.append("Stroke mono inverse")
+            debug(f"\t\tOPTIONALS: {", ".join(fulltext_optionals)}")
     
     if ("sk" in optionals and "tone" in palette):
         fill_c = palette["tone"]
@@ -523,6 +537,18 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
         palette["tone"] = "#eed9ca" if "tone_light" in db["manifest"]["tags"] else \
                         "#caae99" if "tone_medium" in db["manifest"]["tags"] else \
                         "#906545" if "tone_dark" in db["manifest"]["tags"] else "#000000"
+    
+    debug("Retrieved Palette")
+    debug(f"\tPRIMARY: {palette["primary"]}")
+    debug(f"\tSECONDARY: {palette["secondary"]}")
+    debug(f"\tMONO: {palette["mono"]}")
+    debug(f"\tNUMBER OF OVERRIDES: {len(palette["overrides"])}")
+    if has_tone:
+        assert("tone" in palette)
+        debug(f"\tTONE: {palette["tone"]}")
+    else:
+        debug(f"\tTONE: None!")
+
 
     for name, cursor in db["cursors"].items():
         if not cursor["build"]:
