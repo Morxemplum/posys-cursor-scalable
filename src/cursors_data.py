@@ -217,7 +217,7 @@ db : CursorCollection = {
     "manifest": {
         "name": "Posy's Cursors Scalable",
         "tags": [],
-        "description": "Posy's infamous cursors, containing unrasterized and additional cursors for the Linux user",
+        "description": "Posy's infamous cursors, containing unrasterized and additional cursors for the Linux user.",
 
         "authors": ["Michiel De Boer", "Synth Morxemplum"],
         "version": "1.4"

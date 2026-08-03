@@ -224,6 +224,103 @@ def is_animated(cursor: CursorDesign) -> bool:
     '''
     return ("total_frames" in cursor) and ("animation_speed" in cursor)
 
+def format_title_tags() -> str:
+    '''
+    Observes all of the tags within the database and uses them to format a
+    string that will be inserted into the title of the theme's manifest file.
+
+    When somebody views the theme in a GUI theming / settings manager, they 
+    will get a very concise description of what type of cursor theme it is, so
+    if multiple variants of the same theme are installed, they can 
+    differentiate them.
+
+    Returns:
+        A formatted string that outlines the important descriptors of the
+        cursor theme.
+    '''
+    title_tags: list[str] = []
+    tags = db["manifest"]["tags"]
+
+    # First, check the color / variant of the theme. If it is anything other than white, specify it.
+    if db["theme"] != ThemeColor.WHITE:
+        match(db["theme"]):
+            case ThemeColor.BLACK:
+                title_tags.append("Black")
+            case ThemeColor.MONO:
+                title_tags.append("Mono")
+            case ThemeColor.MONO_BLACK:
+                title_tags.append("Mono Black")
+    
+    # For extra cursors, there is a specific order we want to go in and only certain extras are worthy of distinction
+    
+    # The first extra is the skin tone cursors.
+    # They override the overall color / variant on the hand cursors, so they should be specified.
+    if ("tone_light" in tags) or ("tone_medium" in tags) or ("tone_dark" in tags):
+        title_tags.append("Skinned")
+
+    # The second extra is the refreshed (V2) cursor designs. 
+    # Michiel de Boer (Posy) later on made a revisit to some of his old cursors and made changes to their designs.
+    # However, he classifies his redesigns as extras and not standard, so it might be best to specify if themes
+    # use the refreshed designs.
+    if "v2" in tags:
+        title_tags.append("Refreshed")
+
+    return f"[{", ".join(title_tags)}]"
+
+def describe_modifications() -> str:
+    '''
+    Observes all of the tags within the database and uses them to format a
+    string that will be inserted into the description of the theme's manifest
+    file.
+
+    Similar to format_title_tags, this is meant to inform users who are viewing
+    the theme in a GUI theming / settings manager. Unlike that function, this
+    function is more exhaustive on stating how the theme was modified.
+
+    Returns:
+        A formatted string that outlines how the cursor theme has been
+        modified.
+    '''
+    modifications: list[str] = []
+    tags = db["manifest"]["tags"]
+    fulltext_theme = "white"
+    
+    if db["theme"] != ThemeColor.WHITE:
+        match(db["theme"]):
+            case ThemeColor.BLACK:
+                fulltext_theme = "black"
+            case ThemeColor.MONO:
+                fulltext_theme = "mono"
+            case ThemeColor.MONO_BLACK:
+                fulltext_theme = "mono black"
+    
+    if len(tags) == 0:
+        return f"This is the {fulltext_theme} variant of the theme."
+    
+    if "v2" in tags:
+        modifications.append("Posy's refreshed (V2) designs")
+    
+    if "tone_light" in tags:
+        modifications.append("Light skin tones")
+    elif "tone_medium" in tags:
+        modifications.append("Medium skin tones")
+    elif "tone_dark" in tags:
+        modifications.append("Dark skin tones")
+
+    if "colored_help" in tags:
+        modifications.append("Colored help cursor")
+    
+    if "wrong_finger" in tags:
+        modifications.append("Wrong finger click")
+
+    if "xerox" in tags:
+        modifications.append("Alternative default cursor (Early Xerox)")
+    
+    if "social" in tags:
+        modifications.append("Additional social cursors")
+
+    return f"This is the {fulltext_theme} variant of the theme. This theme has been modified from the original to include the following: {", ".join(modifications)}."
+
 def create_hyprland_metadata(directory: str, cursor: str):
     '''
     Writes a metadata file for a cursor following the Hyprcursor metadata
@@ -260,9 +357,8 @@ def create_hyprland_manifest():
     '''
     manifest: CursorManifest = db["manifest"]
     with open("./build/hyprcursor/manifest.hl", "w") as f:
-        # TODO: Incorporate tags into the name
-        _ = f.write(f"name = {manifest.get("name")}\n")
-        _ = f.write(f"description = {manifest.get("description")}\n")
+        _ = f.write(f"name = {manifest.get("name")} {format_title_tags()}\n")
+        _ = f.write(f"description = {manifest.get("description")} {describe_modifications()}\n")
         _ = f.write(f"author = {", ".join(manifest.get("authors"))}\n")
         _ = f.write(f"version = {manifest.get("version")}\n")
         _ = f.write("cursors_directory = hyprcursors\n")
@@ -298,9 +394,8 @@ def create_kwin_manifest():
     manifest: CursorManifest = db["manifest"]
     with open("./build/plasma/index.theme", "w") as f:
         _ = f.write(f"[Icon Theme]\n")
-        # TODO: Incorporate tags into the name
-        _ = f.write(f"Name={manifest.get("name")}\n")
-        _ = f.write(f"Comment={manifest.get("description")}. Version {manifest.get("version")}. Created by {", ".join(manifest.get("authors"))}.\n")
+        _ = f.write(f"Name={manifest.get("name")} {format_title_tags()}\n")
+        _ = f.write(f"Comment={manifest.get("description")} Version {manifest.get("version")}. Created by {", ".join(manifest.get("authors"))}. {describe_modifications()}\n")
 
 def create_metadata_file(compositor: Compositor, directory: str, cursor: str):
     '''
@@ -812,24 +907,29 @@ def apply_extras(option_labels : list[str], selected: set[int]):
 
         match(option):
             case "Posy's Refreshed Cursors (V2 Designs)":
+                db["manifest"]["tags"].append("v2")
                 cursors["beam"]["build"] = False
                 cursors["precision"]["build"] = False
 
                 cursors["beam-v2"]["build"] = True
                 cursors["precision-v2"]["build"] = True
             case "Early Xerox default cursor":
+                db["manifest"]["tags"].append("xerox")
                 cursors["default"]["build"] = False
 
                 cursors["alt"]["build"] = True
             case "Wrong finger click":
+                db["manifest"]["tags"].append("wrong_finger")
                 cursors["hand"]["build"] = False
 
                 cursors["wrong-finger"]["build"] = True
             case "Winhelp (Colored Help)":
+                db["manifest"]["tags"].append("colored_help")
                 cursors["help"]["build"] = False
 
                 cursors["winhelp"]["build"] = True
             case "Social cursors (person & pin)":
+                db["manifest"]["tags"].append("social")
                 cursors["social-person"]["build"] = True
                 cursors["map-pin"]["build"] = True
             case "Skin toned hands":
