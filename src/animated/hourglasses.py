@@ -14,7 +14,7 @@ from pathlib import Path
 repo_dir = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(repo_dir))
 # We must maintain the same namespace as the main build script, otherwise the Python interpreter will bug out on certain logic.
-from src.cursors_data import KWinCursor, KWinAnimatedCursor, Compositor, db, kwin_nominal_size
+from src.cursors_data import KWinCursor, KWinAnimatedCursor, Compositor, ThemeColor, db, kwin_nominal_size
 
 REVERSE = True # Posy's animation goes in the opposite direction of the gradient
 subprocess_output = False
@@ -37,7 +37,8 @@ class ArgConsts(argparse.Namespace):
     frame_rate: int # pyright: ignore[reportUninitializedInstanceVariable]
     compositor: str # pyright: ignore[reportUninitializedInstanceVariable]
     output: str # pyright: ignore[reportUninitializedInstanceVariable]
-    mono: bool | None # pyright: ignore[reportUninitializedInstanceVariable]
+    mono: bool # pyright: ignore[reportUninitializedInstanceVariable]
+    black: bool # pyright: ignore[reportUninitializedInstanceVariable]
     cursor: str | None # pyright: ignore[reportUninitializedInstanceVariable]
 
 def animated_path() -> str:
@@ -204,17 +205,25 @@ def generate_frames(path: str, cursor: str, total_frames : int):
 
     segment_length: float
     hypotenuse: float
+    begin_statements: list[str] = []
     match(cursor):
         case "progress":
             hypotenuse = 10.67
             segment_length = hypotenuse / 7
+            if (db["theme"] == ThemeColor.BLACK):
+                begin_statements = [
+                    "select-by-id:cursor",
+                    "object-set-property:fill, #000000",
+                    "object-set-property:stroke, #ffffff",
+                    "unselect-by-id:cursor"
+                ]
         case "wait":
             segment_length = 3.43
             hypotenuse = segment_length * 7
         case _:
             return
-    
-    begin_statements = [f"select-by-id:layer{overflow}", f"select-by-id:hourglass{overflow}", "delete"]
+
+    begin_statements.extend([f"select-by-id:layer{overflow}", f"select-by-id:hourglass{overflow}", "delete"])
 
     for i in range(0, total_frames):
         debug(f"\t\tGenerating frame {str(i).zfill(num_digits)}")
@@ -306,17 +315,25 @@ def generate_frames_mono(path: str, cursor: str, total_frames: int):
     
     segment_length: float
     hypotenuse: float
+    begin_statements: list[str] = []
     match(cursor):
         case "progress":
             hypotenuse = 10.67
             segment_length = hypotenuse / 7
+            if (db["theme"] == ThemeColor.MONO_BLACK):
+                begin_statements = [
+                    "select-by-id:cursor",
+                    "object-set-property:fill, #000000",
+                    "object-set-property:stroke, #ffffff",
+                    "unselect-by-id:cursor"
+                ]
         case "wait":
             segment_length = 3.43
             hypotenuse = segment_length * 7
         case _:
             return
 
-    begin_statements = [f"select-by-id:layer{overflow}", f"select-by-id:hourglass{overflow}", "delete"]
+    begin_statements.extend([f"select-by-id:layer{overflow}", f"select-by-id:hourglass{overflow}", "delete"])
     mono_hypotenuse = hypotenuse * (2/7)
 
     for i in range(0, total_frames):
@@ -449,7 +466,16 @@ def main():
     standalone. The main build script doesn't call this function!
     '''
     total_frames: int = math.ceil(args.duration * args.frame_rate / 1000)
-    
+    match(args.mono, args.black):
+        case False, False:
+            db["theme"] = ThemeColor.WHITE
+        case False, True:
+            db["theme"] = ThemeColor.BLACK
+        case True, False:
+            db["theme"] = ThemeColor.MONO
+        case True, True:
+            db["theme"] = ThemeColor.MONO_BLACK
+
     print("Frames to generate:", total_frames)
 
     if args.cursor:
@@ -469,7 +495,8 @@ if __name__ == "__main__":
     _ = parser.add_argument("frame_rate", type=int, help="How many frames will be made per second of animation. Delays will be calculated from this value.")
     _ = parser.add_argument("compositor", type=str, help="The Wayland compositor that the cursors will be made for (hyprland, kwin)")
     _ = parser.add_argument("-o", "--output", type=str, default=".", help="Specify a custom path to output the build artifacts to. Otherwise, it'll build in the same directory.")
-    _ = parser.add_argument("--mono", action="store_true", help="If used, the monotone variants will be generated instead of the colorfuls")
+    _ = parser.add_argument("--mono", action="store_true", default=False, help="If used, the monotone variants will be generated instead of the colorfuls")
+    _ = parser.add_argument("--black", action="store_true", default=False, help="If used, the progress cursor head will be colored according to the palette of the Black theme")
     _ = parser.add_argument("--cursor", type=str, help="Picks a specific hourglass cursor to generate. If not present, all cursors will be generated.")
     args: ArgConsts = parser.parse_args(namespace=ArgConsts())
     main()
