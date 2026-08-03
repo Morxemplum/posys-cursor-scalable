@@ -363,7 +363,7 @@ def create_cursor_metadatas(theme_dir: str, compositor: Compositor):
         os.makedirs(output_dir, exist_ok=True)
         create_metadata_file(compositor, output_dir, name)
 
-def query_svg(source_svg: str) -> list[str]:
+def query_svg(source_path: str) -> list[str]:
     '''
     Using the query-all flag, fetches and filters a list of all the object IDs
     within a source SVG through the usage of inkscape. The header SVG object is
@@ -371,14 +371,14 @@ def query_svg(source_svg: str) -> list[str]:
     leaving with IDs that suggest that they link to paths.
 
     Parameters:
-        source_svg (str):
-            The file name of the template SVG (Must be in the "src" folder)
+        source_path (str):
+            The full relative path and file name of the template SVG (with 
+            extension)
 
     Returns:
         A list of all the names of path layer IDs in the SVGs.
     '''
-    svg = f"./src/{source_svg}"
-    results = subprocess.run(["inkscape", "--query-all", svg], capture_output=True)
+    results = subprocess.run(["inkscape", "--query-all", source_path], capture_output=True)
     
     raw_lines = results.stdout.decode("utf-8").splitlines()
     ids: list[str] = []
@@ -575,7 +575,7 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
             results = subprocess.run(["inkscape", "--export-type=svg", "--export-plain-svg", f"--export-filename={f"{output_dir}/{output_file_name}"}", file_path], capture_output=True)
         else:
             actions: list[str] = []
-            ids = query_svg(input_file_name)
+            ids = query_svg(file_path)
             for id in ids:
                 if id.find(".") < 0:
                     continue
