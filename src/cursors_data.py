@@ -363,12 +363,14 @@ db : CursorCollection = {
 
         "col-resize": {
             "build": True,
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["col_resize"]
         },
 
         "row-resize": {
             "build": True,
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["row_resize"]
         },
@@ -376,6 +378,7 @@ db : CursorCollection = {
         "e-resize": {
             "build": True,
             "src_file": "resize-E",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_E"]
         },
@@ -383,6 +386,7 @@ db : CursorCollection = {
         "n-resize": {
             "build": True,
             "src_file": "resize-N",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_N"]
         },
@@ -390,6 +394,7 @@ db : CursorCollection = {
         "ne-resize": {
             "build": True,
             "src_file": "resize-Ne",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_Ne"]
         },
@@ -397,6 +402,7 @@ db : CursorCollection = {
         "nw-resize": {
             "build": True,
             "src_file": "resize-Nw",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_Nw"]
         },
@@ -404,6 +410,7 @@ db : CursorCollection = {
         "s-resize": {
             "build": True,
             "src_file": "resize-S",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_S"]
         },
@@ -411,6 +418,7 @@ db : CursorCollection = {
         "se-resize": {
             "build": True,
             "src_file": "resize-Se",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_Se"],
         },
@@ -418,6 +426,7 @@ db : CursorCollection = {
         "sw-resize": {
             "build": True,
             "src_file": "resize-Sw",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_Sw"]
         },
@@ -425,6 +434,7 @@ db : CursorCollection = {
         "w-resize": {
             "build": True,
             "src_file": "resize-W",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_W"]
         },
@@ -432,6 +442,7 @@ db : CursorCollection = {
         "ew-resize": {
             "build": True,
             "src_file": "resize-EW",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["split_v", "sb_v_double_arrow", "size_hor", "size-hor", "v_double_arrow", "size_EW"]
         },
@@ -439,6 +450,7 @@ db : CursorCollection = {
         "nesw-resize": {
             "build": True,
             "src_file": "resize-NeSw",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["fb_double_arrow", "size_bdiag", "size_NeSw"]
         },
@@ -446,6 +458,7 @@ db : CursorCollection = {
         "ns-resize": {
             "build": True,
             "src_file": "resize-NS",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["split_h", "h_double_arrow", "sb_h_double_arrow", "size_ver", "size-ver", "size_NS"]
         },
@@ -453,6 +466,7 @@ db : CursorCollection = {
         "nwse-resize": {
             "build": True,
             "src_file": "resize-NwSe",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_fdiag", "size_NwSe"]
         },
