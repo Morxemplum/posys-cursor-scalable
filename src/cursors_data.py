@@ -499,6 +499,7 @@ db : CursorCollection = {
             "build": False,
             "extra": False,
             "out_file": "default",
+            "hotspot": (0.5, 0),
             "size": (24, 24),
             "aliases": ["arrow", "left_ptr"]
         },
@@ -517,6 +518,7 @@ db : CursorCollection = {
             "extra": True,
             "skip_theming": True,
             "out_file": "beam",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["text", "ibeam", "xterm"]
         },
