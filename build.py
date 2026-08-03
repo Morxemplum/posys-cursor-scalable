@@ -792,6 +792,60 @@ def create_alias_sym_links(theme_dir: str):
             debug(f"Creating alias \"{alias}\" for \"{cursor}\"")
             _ = subprocess.run(["ln", "-s", abs_dir, sym_link])
 
+def apply_extras(option_labels : list[str], selected: set[int]):
+    '''
+    A separate function that is dedicated to applying selected extras to the
+    cursor theme
+
+    Parameters:
+        option_labels (list[str]):
+            The option names in plain English
+        selected (set[int]):
+            The set of all selected options by the user
+    '''
+    if len(selected) == 0:
+        return
+    
+    cursors = db["cursors"]
+    for selection in selected:
+        option = option_labels[selection - 1]
+
+        match(option):
+            case "Posy's Refreshed Cursors (V2 Designs)":
+                cursors["beam"]["build"] = False
+                cursors["precision"]["build"] = False
+
+                cursors["beam-v2"]["build"] = True
+                cursors["precision-v2"]["build"] = True
+            case "Early Xerox default cursor":
+                cursors["default"]["build"] = False
+
+                cursors["alt"]["build"] = True
+            case "Wrong finger click":
+                cursors["hand"]["build"] = False
+
+                cursors["wrong-finger"]["build"] = True
+            case "Winhelp (Colored Help)":
+                cursors["help"]["build"] = False
+
+                cursors["winhelp"]["build"] = True
+            case "Social cursors (person & pin)":
+                cursors["social-person"]["build"] = True
+                cursors["map-pin"]["build"] = True
+            case "Skin toned hands":
+                tone_opt = select_prompt("Which skin tone would you like to choose?", ["Light", "Medium", "Dark"])
+                match(tone_opt):
+                    case 1:
+                        db["manifest"]["tags"].append("tone_light")
+                    case 2:
+                        db["manifest"]["tags"].append("tone_medium")
+                    case 3:
+                        db["manifest"]["tags"].append("tone_dark")
+                    case _:
+                        pass
+            case _:
+                pass
+
 def main():
     comp : Compositor
     procedure_cnt: int = 1
@@ -818,7 +872,6 @@ def main():
 
     print()
 
-    # TODO: Some extras are incompatible with a mono theme. Refine the extra cursor selection process to remove such options if a mono theme is selected.
     available_extras: list[str] = ["Posy's Refreshed Cursors (V2 Designs)", "Early Xerox default cursor", "Wrong finger click", "Winhelp (Colored Help)", "Social cursors (person & pin)", "Skin toned hands"]
 
     theme_opt = select_prompt("Choose which theme you would like for your cursors (or just press Enter for \"White\")", ["White", "Black", "Mono", "Mono Black"], 1)
@@ -834,60 +887,20 @@ def main():
         case _:
             pass
     
-    # Mono themes change fundamental properties of the hourglass cursors, so we must apply those changes
     if (db["theme"] == ThemeColor.MONO or db["theme"] == ThemeColor.MONO_BLACK):
+        # Mono themes change fundamental properties of the hourglass cursors, so we must apply those changes
         db["cursors"]["wait"]["skip_bimi"] = True
         db["cursors"]["wait"]["total_frames"] = 22
         db["cursors"]["progress"]["skip_bimi"] = True
         db["cursors"]["progress"]["total_frames"] = 22
 
+        # Remove incompatible extra options (Skin tones, winhelp)
+        available_extras.remove("Skin toned hands")
+        available_extras.remove("Winhelp (Colored Help)")
+
     extra_opts: set[int] = multiselect_prompt("This theme offers extra cursors and alternatives on top of the regular selection. Here is a list of all the available extra cursors.", available_extras)
+    apply_extras(available_extras, extra_opts)
 
-    # Refreshed Cursors
-    if 1 in extra_opts:
-        db["cursors"]["beam"]["build"] = False
-        db["cursors"]["precision"]["build"] = False
-
-        db["cursors"]["beam-v2"]["build"] = True
-        db["cursors"]["precision-v2"]["build"] = True
-
-    # Early Xerox cursor (up arrow)
-    if 2 in extra_opts:
-        db["cursors"]["default"]["build"] = False
-
-        db["cursors"]["alt"]["build"] = True
-
-    # Wrong finger (middle finger click)
-    if 3 in extra_opts:
-        db["cursors"]["hand"]["build"] = False
-
-        db["cursors"]["wrong-finger"]["build"] = True
-    
-    # Winhelp (Colored Help cursor)
-    if 4 in extra_opts:
-        db["cursors"]["help"]["build"] = False
-
-        db["cursors"]["winhelp"]["build"] = True
-    
-    # Social cursors (person & pin)
-    if 5 in extra_opts:
-        db["cursors"]["social-person"]["build"] = True
-        db["cursors"]["map-pin"]["build"] = True
-    
-    # Skin toned hands
-    if 6 in extra_opts:
-        tone_opt = select_prompt("Which skin tone would you like to choose?", ["Light", "Medium", "Dark"])
-        match(tone_opt):
-            case 1:
-                db["manifest"]["tags"].append("tone_light")
-            case 2:
-                db["manifest"]["tags"].append("tone_medium")
-            case 3:
-                db["manifest"]["tags"].append("tone_dark")
-            case _:
-                pass
-
-    
     print(f"{procedure_cnt}. Creating appropriate theme directories")
     theme_dir: str = f"./build/{folder_name}"
     os.makedirs(theme_dir, exist_ok=True)
