@@ -483,7 +483,7 @@ db : CursorCollection = {
 
         "alt": {
             "build": False,
-            "extra": True,
+            "extra": False,
             "out_file": "default",
             "size": (24, 24),
             "aliases": ["arrow", "left_ptr"]
