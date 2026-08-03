@@ -525,27 +525,22 @@ db : CursorCollection = {
             "aliases": ["question_arrow", "left_ptr_help", "whats_this", "dnd-ask", "5c6cd98b3f3ebcb1f9c7f1c204630408", "d9ce0ab605698f320427677b458ad60b"]
         },
 
-        # TODO: As part of theming, skin tones will be integrated directly in the original designs where they apply
-        # Light: eed9caff
-        # Medium: caae99ff
-        # Dark: 906545ff
-
         ### EXTRA CURSORS
 
         "social-person": {
             "build": False,
             "extra": True,
             "out_file": "person",
-            "hotspot": (0.253, 0),
-            "size": (28, 28)
+            "hotspot": (0.221, 0),
+            "size": (32, 32)
         },
 
         "map-pin": {
             "build": False,
             "extra": True,
             "out_file": "pin",
-            "hotspot": (0.253, 0),
-            "size": (28, 28)
+            "hotspot": (0.221, 0),
+            "size": (32, 32)
         }
     }
 }
