@@ -156,12 +156,23 @@ class Compositor(enum.Enum):
         match(s.lower()):
             case "hyprland":
                 return Compositor.HYPRLAND
+            case "hyprcursor":
+                return Compositor.HYPRLAND
             case "kwin":
                 return Compositor.KWIN
             case "plasma":
                 return Compositor.KWIN
             case _:
                 return Compositor.UNSUPPORTED
+    @staticmethod
+    def theme_name(c: Compositor) -> str:
+        match(c):
+            case Compositor.HYPRLAND:
+                return "hyprcursor"
+            case Compositor.KWIN:
+                return "plasma"
+            case _:
+                return ""
 
 class CursorCollection(TypedDict):
     '''

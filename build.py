@@ -1,5 +1,6 @@
 import enum
 from logging import basicConfig, debug, INFO, DEBUG
+from pathlib import Path
 import json
 import math
 import os
@@ -949,6 +950,43 @@ def apply_extras(option_labels : list[str], selected: set[int]):
             case _:
                 pass
 
+def install_theme(theme_dir: str, compositor: Compositor):
+    '''
+    Given the built theme, will install the theme locally onto the user's
+    system by moving (and renaming) the built theme into the icons folder.
+
+    Parameters:
+        theme_dir (str):
+            The built theme directory that will be installed
+        compositor (Compositor):
+            The Wayland compositor the theme was built for. This is used
+            to help name the installed theme
+    '''
+    theme = ""
+    if db["theme"] != ThemeColor.WHITE:
+        match(db["theme"]):
+            case ThemeColor.BLACK:
+                theme = "_black"
+            case ThemeColor.MONO:
+                theme = "_mono"
+            case ThemeColor.MONO_BLACK:
+                theme = "_mono_black"
+    installed_name = f"{Compositor.theme_name(compositor)}_posys_cursor_scalable{theme}"
+    install_dir = f"{Path.home()}/.local/share/icons"
+
+    if os.path.exists(f"{install_dir}/{installed_name}"):
+        overwrite = confirmation_prompt("A copy of the theme is already installed on your system. Replace the installation?")
+        if overwrite:
+            shutil.rmtree(f"{install_dir}/{installed_name}")
+        else:
+            return
+    
+    try:           
+        _ = shutil.move(theme_dir, f"{install_dir}/{installed_name}")
+        print("Theme has successfully installed")
+    except:
+        print("An error occurred while installing the theme")
+    
 def main():
     comp : Compositor
     procedure_cnt: int = 1
@@ -1055,7 +1093,10 @@ def main():
         create_alias_sym_links(theme_dir)
         procedure_cnt += 1
     
-    print("All done!")
+    print()
+    install = confirmation_prompt("Install the built cursor theme to user?", ConfirmationDefault.YES)
+    if install:
+        install_theme(theme_dir, comp)
 
     
 if __name__ == "__main__":
