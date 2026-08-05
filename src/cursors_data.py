@@ -147,7 +147,7 @@ class Compositor(enum.Enum):
     '''
     This includes all of the Wayland compositors that support vector cursors.
     '''
-    UNSUPPORTED = ""
+    UNSUPPORTED = "misc"
     HYPRLAND = "hyprland"
     KWIN = "plasma"
 

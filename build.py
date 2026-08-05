@@ -1,3 +1,4 @@
+import argparse
 import enum
 from logging import basicConfig, debug, INFO, DEBUG
 from pathlib import Path
@@ -11,11 +12,23 @@ import subprocess
 import src.animated.hourglasses as hourglasses
 from src.cursors_data import CursorManifest, KWinCursor, Compositor, CursorDesign, ThemeColor, ThemePalette, get_theme_palette, db
 
-LOG_LEVEL = INFO
-basicConfig(level=LOG_LEVEL)
+log_level = INFO
 # If true, the program will continue running even if errors were produced by 
 # any processes run. DO NOT SET TO TRUE UNLESS YOU KNOW WHAT YOU'RE DOING!
 OVERRIDE_PROC_ERRORS: bool = False
+
+class ArgConsts(argparse.Namespace):
+    '''
+    This class mainly exists to provide type definitions for the arguments
+    provided by my argparse.
+    '''
+    compositor: str # pyright: ignore[reportUninitializedInstanceVariable]
+    theme: str # pyright: ignore[reportUninitializedInstanceVariable]
+    extras: list[str] # pyright: ignore[reportUninitializedInstanceVariable]
+    tone: str # pyright: ignore[reportUninitializedInstanceVariable]
+    skip_optional_prompts: bool # pyright: ignore[reportUninitializedInstanceVariable]
+    install: bool # pyright: ignore[reportUninitializedInstanceVariable]
+    debug: bool # pyright: ignore[reportUninitializedInstanceVariable]
 
 class ConfirmationDefault(enum.IntEnum):
     '''
@@ -360,7 +373,7 @@ def create_hyprland_manifest():
     Writes the theme manifest following the Hyprcursor manifest format.
     '''
     manifest: CursorManifest = db["manifest"]
-    with open("./build/hyprcursor/manifest.hl", "w") as f:
+    with open("./build/hyprland/manifest.hl", "w") as f:
         _ = f.write(f"name = {manifest.get("name")} {format_title_tags()}\n")
         _ = f.write(f"description = {manifest.get("description")} {describe_modifications()}\n")
         _ = f.write(f"author = {", ".join(manifest.get("authors"))}\n")
@@ -546,7 +559,7 @@ def theme_layer(id: str, palette: ThemePalette) -> list[str]:
     optionals: list[str] = []
     if len(components) > 3:
         optionals = components[3:]
-        if (LOG_LEVEL == DEBUG):  # pyright: ignore[reportUnnecessaryComparison]
+        if (log_level == DEBUG):
             fulltext_optionals: list[str] = []
             if "sk" in optionals:
                 if "tone" in palette:
@@ -733,7 +746,7 @@ def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: b
             "--remove-description", "--remove-metadata", "--remove-descriptive-elements", 
             "--enable-comment-stripping", "--indent=tab", "--no-line-breaks", 
             "--strip-xml-space", "--enable-id-stripping", "--shorten-ids"],
-            capture_output=(LOG_LEVEL != DEBUG)) # pyright: ignore[reportUnnecessaryComparison]
+            capture_output=(log_level != DEBUG))
         if (result.returncode != 0):
             error = True
     if error and not OVERRIDE_PROC_ERRORS:
@@ -891,7 +904,109 @@ def create_alias_sym_links(theme_dir: str):
             debug(f"Creating alias \"{alias}\" for \"{cursor}\"")
             _ = subprocess.run(["ln", "-s", rel_dir, sym_link])
 
-def apply_extras(option_labels : list[str], selected: set[int]):
+def extra_refreshed_designs():
+    '''
+    Applies Posy's Refreshed Designs (V2) extra
+    '''
+    cursors = db["cursors"]
+    db["manifest"]["tags"].append("v2")
+    cursors["beam"]["build"] = False
+    cursors["precision"]["build"] = False
+
+    cursors["beam-v2"]["build"] = True
+    cursors["precision-v2"]["build"] = True
+
+def extra_xerox():
+    '''
+    Applies the early Xerox cursor design extra
+    '''
+    cursors = db["cursors"]
+    db["manifest"]["tags"].append("xerox")
+    cursors["default"]["build"] = False
+
+    cursors["alt"]["build"] = True
+
+def extra_wrong_finger():
+    '''
+    Applies the middle finger hand cursor extra
+    '''
+    cursors = db["cursors"]
+    db["manifest"]["tags"].append("wrong_finger")
+    cursors["hand"]["build"] = False
+
+    cursors["wrong-finger"]["build"] = True
+
+def extra_colored_help():
+    '''
+    Applies the colored help extra
+    '''
+    cursors = db["cursors"]
+    db["manifest"]["tags"].append("colored_help")
+    cursors["help"]["build"] = False
+
+    cursors["winhelp"]["build"] = True
+
+def extra_social():
+    '''
+    Applies the social extra, including map-pin and social-person
+    '''
+    cursors = db["cursors"]
+    db["manifest"]["tags"].append("social")
+    cursors["social-person"]["build"] = True
+    cursors["map-pin"]["build"] = True
+
+def extra_toned_hands():
+    '''
+    Applies the skin tone extra. If a tone is not provided through args, the
+    user will be prompted for one.
+    '''
+    if (args.tone):
+        db["manifest"]["tags"].append(f"tone_{args.tone}")
+    else:
+        tone_opt = select_prompt("Which skin tone would you like to choose?", ["Light", "Medium", "Dark"])
+        match(tone_opt):
+            case 1:
+                db["manifest"]["tags"].append("tone_light")
+            case 2:
+                db["manifest"]["tags"].append("tone_medium")
+            case 3:
+                db["manifest"]["tags"].append("tone_dark")
+            case _:
+                pass
+
+def apply_extras_args():
+    '''
+    A separate function that is dedicated to applying selected extras to the
+    cursor theme. Instead of reading from a provided list and set, the options
+    are read through the argparser.
+    '''
+    mono = db["theme"] == ThemeColor.MONO or db["theme"] == ThemeColor.MONO_BLACK
+    if args.extras and len(args.extras) > 0:
+        for extra in args.extras:
+            match(extra):
+                case "v2":
+                    extra_refreshed_designs()
+                case "xerox":
+                    extra_xerox()
+                case "wrong-finger":
+                    extra_wrong_finger()
+                case "winhelp":
+                    if not mono:
+                        extra_colored_help()
+                    else:
+                        print("Attempted to apply \"winhelp\" extra while the theme is mono. Ignoring.")
+                case "social":
+                    extra_social()
+                case _:
+                    pass
+    
+    if args.tone:
+        if not mono:
+            extra_toned_hands()
+        else:
+            print("Attempted to apply \"tone\" extra while the theme is mono. Ignoring.")
+
+def apply_extras_prompt(option_labels : list[str], selected: set[int]):
     '''
     A separate function that is dedicated to applying selected extras to the
     cursor theme
@@ -905,48 +1020,21 @@ def apply_extras(option_labels : list[str], selected: set[int]):
     if len(selected) == 0:
         return
     
-    cursors = db["cursors"]
     for selection in selected:
         option = option_labels[selection - 1]
-
         match(option):
             case "Posy's Refreshed Cursors (V2 Designs)":
-                db["manifest"]["tags"].append("v2")
-                cursors["beam"]["build"] = False
-                cursors["precision"]["build"] = False
-
-                cursors["beam-v2"]["build"] = True
-                cursors["precision-v2"]["build"] = True
+                extra_refreshed_designs()
             case "Early Xerox default cursor":
-                db["manifest"]["tags"].append("xerox")
-                cursors["default"]["build"] = False
-
-                cursors["alt"]["build"] = True
+                extra_xerox()
             case "Wrong finger click":
-                db["manifest"]["tags"].append("wrong_finger")
-                cursors["hand"]["build"] = False
-
-                cursors["wrong-finger"]["build"] = True
+                extra_wrong_finger()
             case "Winhelp (Colored Help)":
-                db["manifest"]["tags"].append("colored_help")
-                cursors["help"]["build"] = False
-
-                cursors["winhelp"]["build"] = True
+                extra_colored_help()
             case "Social cursors (person & pin)":
-                db["manifest"]["tags"].append("social")
-                cursors["social-person"]["build"] = True
-                cursors["map-pin"]["build"] = True
+                extra_social()
             case "Skin toned hands":
-                tone_opt = select_prompt("Which skin tone would you like to choose?", ["Light", "Medium", "Dark"])
-                match(tone_opt):
-                    case 1:
-                        db["manifest"]["tags"].append("tone_light")
-                    case 2:
-                        db["manifest"]["tags"].append("tone_medium")
-                    case 3:
-                        db["manifest"]["tags"].append("tone_dark")
-                    case _:
-                        pass
+                extra_toned_hands()
             case _:
                 pass
 
@@ -975,8 +1063,10 @@ def install_theme(theme_dir: str, compositor: Compositor):
     install_dir = f"{Path.home()}/.local/share/icons"
 
     if os.path.exists(f"{install_dir}/{installed_name}"):
-        overwrite = confirmation_prompt("A copy of the theme is already installed on your system. Replace the installation?")
-        if overwrite:
+        overwrite = False
+        if (not args.install):
+            overwrite = confirmation_prompt("A copy of the theme is already installed on your system. Replace the installation?")
+        if args.install or overwrite:
             shutil.rmtree(f"{install_dir}/{installed_name}")
         else:
             return
@@ -994,40 +1084,51 @@ def main():
     dependency_check()
 
     print("Welcome to the install script for Posy's cursors.")
-    print("WARNING: THIS SCRIPT IS CURRENTLY A WORK IN PROGRESS AND NOT YET COMPLETE.")
-    print("This script will ask you a few questions to build the theme so it best fits your preferences.\n")
-
-    comp_opt: int = select_prompt("For which compositor will you be building this theme for?", ["Hyprland", "KDE Plasma (KWin)"])
+    print("Reminder: This build script and theme are not responsible for any damage done to your system or hardware.")
+    print()
+    if (args.debug):
+        global log_level
+        log_level = DEBUG
+        basicConfig(level=log_level, format="\x1b[1;35m%(asctime)s [%(levelname)s]\x1b[0m %(message)s")
+    debug("If you're seeing this, debug is enabled.")
 
     folder_name: str = ""
-    match(comp_opt):
-        case 1:
-            folder_name = "hyprcursor"
-            comp = Compositor.HYPRLAND
-        case 2:
-            folder_name = "plasma"
-            comp = Compositor.KWIN
+    if (args.compositor):
+        folder_name = args.compositor
+        comp = Compositor(args.compositor)
+        if comp == Compositor.KWIN:
             bimi_dependency_check()
-        case _:
-            comp= Compositor.UNSUPPORTED
+    else:
+        comp_opt: int = select_prompt("For which compositor will you be building this theme for?", ["Hyprland", "KDE Plasma (KWin)"])
+        match(comp_opt):
+            case 1:
+                folder_name = "hyprland"
+                comp = Compositor.HYPRLAND
+            case 2:
+                folder_name = "plasma"
+                comp = Compositor.KWIN
+                bimi_dependency_check()
+            case _:
+                comp= Compositor.UNSUPPORTED
+        print()
 
-    print()
-
-    available_extras: list[str] = ["Posy's Refreshed Cursors (V2 Designs)", "Early Xerox default cursor", "Wrong finger click", "Winhelp (Colored Help)", "Social cursors (person & pin)", "Skin toned hands"]
-
-    theme_opt = select_prompt("Choose which theme you would like for your cursors (or just press Enter for \"White\")", ["White", "Black", "Mono", "Mono Black"], 1)
-    match(theme_opt):
-        case 1:
-            db["theme"] = ThemeColor.WHITE
-        case 2:
-            db["theme"] = ThemeColor.BLACK
-        case 3:
-            db["theme"] = ThemeColor.MONO
-        case 4:
-            db["theme"] = ThemeColor.MONO_BLACK
-        case _:
-            pass
+    if (args.theme):
+        match(args.theme):
+            case "white":
+                db["theme"] = ThemeColor.WHITE
+            case "black":
+                db["theme"] = ThemeColor.BLACK
+            case "mono":
+                db["theme"] = ThemeColor.MONO
+            case "mono-black":
+                db["theme"] = ThemeColor.MONO_BLACK
+            case _:
+                pass
+    else:
+        theme_opt = select_prompt("Choose which theme you would like for your cursors (or just press Enter for \"White\")", ["White", "Black", "Mono", "Mono Black"], 1)
+        db["theme"] = ThemeColor(theme_opt - 1)
     
+    available_extras: list[str] = ["Posy's Refreshed Cursors (V2 Designs)", "Early Xerox default cursor", "Wrong finger click", "Winhelp (Colored Help)", "Social cursors (person & pin)", "Skin toned hands"]
     if (db["theme"] == ThemeColor.MONO or db["theme"] == ThemeColor.MONO_BLACK):
         # Mono themes change fundamental properties of the hourglass cursors, so we must apply those changes
         db["cursors"]["wait"]["skip_bimi"] = True
@@ -1039,8 +1140,11 @@ def main():
         available_extras.remove("Skin toned hands")
         available_extras.remove("Winhelp (Colored Help)")
 
-    extra_opts: set[int] = multiselect_prompt("This theme offers extra cursors and alternatives on top of the regular selection. Here is a list of all the available extra cursors.", available_extras)
-    apply_extras(available_extras, extra_opts)
+    if (args.extras or args.tone):
+        apply_extras_args()
+    elif (not args.skip_optional_prompts):
+        extra_opts: set[int] = multiselect_prompt("This theme offers extra cursors and alternatives on top of the regular selection. Here is a list of all the available extra cursors.", available_extras)
+        apply_extras_prompt(available_extras, extra_opts)
 
     print(f"{procedure_cnt}. Creating appropriate theme directories")
     theme_dir: str = f"./build/{folder_name}"
@@ -1094,10 +1198,31 @@ def main():
         procedure_cnt += 1
     
     print()
-    install = confirmation_prompt("Install the built cursor theme to user?", ConfirmationDefault.YES)
-    if install:
+    install = False
+    if (not args.skip_optional_prompts and not args.install):
+        install = confirmation_prompt("Install the built cursor theme to user?", ConfirmationDefault.YES)
+    if install or args.install:
         install_theme(theme_dir, comp)
 
     
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Main build script for the Posy's Cursors Scalable theme. For most command line arguments, providing them avoids their associated interactive prompt."
+    )
+    _ = parser.add_argument("-c", "--compositor", type=str, choices=["hyprland", "plasma"], 
+        help="The compositor that the metadata and manifest will be written in, which will use the theme.")
+    _ = parser.add_argument("-t", "--theme", type=str, choices=["white", "black", "mono", "mono-black"], 
+        help="The color/theme that will be applied to the cursor, affecting overall appearance.")
+    _ = parser.add_argument("-e", "--extras", nargs="+", type=str, choices=["v2", "xerox", "wrong-finger", "winhelp", "social"],
+        help="Modifies the theme built by swapping or adding different cursor variants. Some extras are not available on mono themes and will be ignored.")
+    _ = parser.add_argument("--tone", type=str, choices=["light", "medium", "dark"],
+        help="Modifies all hand cursors by applying a pigmented color to reflect a skin tone. This flag is ignored on mono themes.")
+    _ = parser.add_argument("--install", action="store_true", 
+        help="After building the theme, will install the theme directly to the user through `~/.local/share/icons` directory so it can be used. " +
+        "WARNING: While the interactive mode will prompt for an overwrite, this flag ALWAYS overwrites any previous installations, so be careful!")
+    _ = parser.add_argument("--skip-optional-prompts", action="store_true", 
+        help="Skips the optional interaction prompts, which are the extra and installation prompts")
+    _ = parser.add_argument("--debug", action="store_true",
+        help="Enables debug logging and more verbose output, including output from external processes like Inkscape and Scour.")
+    args: ArgConsts = parser.parse_args(namespace=ArgConsts())
     main()
