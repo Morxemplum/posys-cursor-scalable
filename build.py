@@ -11,11 +11,15 @@ import subprocess
 
 import src.animated.hourglasses as hourglasses
 from src.cursors_data import CursorManifest, KWinCursor, Compositor, CursorDesign, ThemeColor, ThemePalette, get_theme_palette, db
+from src.format import Color8, Formats, TextFormat
 
 log_level = INFO
 # If true, the program will continue running even if errors were produced by 
 # any processes run. DO NOT SET TO TRUE UNLESS YOU KNOW WHAT YOU'RE DOING!
 OVERRIDE_PROC_ERRORS: bool = False
+procedure_cnt: int = 1
+num_cursors: int = 0
+NUM_ANIMATED_CURSORS = 2
 
 class ArgConsts(argparse.Namespace):
     '''
@@ -37,6 +41,37 @@ class ConfirmationDefault(enum.IntEnum):
     NONE = 0
     YES = 1
     NO = 2
+
+def print_procedure(s : str, current: int = 0, total: int = 0, newline: bool = True):
+    '''
+    Prefab print statement that applies text formatting that communicates
+    program procedures, with an optional way to display progress through 
+    numbers.
+
+    If progress is used, the message will not show up in debug mode, as debug 
+    mode provides more detailed insights.
+
+    Parameters:
+        s (str):
+            The string that will be printed to the console
+        current (int, Optional):
+            A part of a progress bar that shows the current progress of the 
+            task
+        total (int, Optional):
+            A part of the progress bar that shows how much the task needs to
+            be performed before it is done. By default, this value is set to 0,
+            which disables showing progress in the final print statement.
+        newline (bool, Optional):
+            After finishing the print statement, move to the next line if set 
+            to True (which is the default value).
+    '''
+    fs: str = Formats.rich_txt(TextFormat.BOLD) + s
+    if total > 0:
+        if log_level == DEBUG:
+            return
+        fs += Formats.rich_txt(Color8.CYAN) + f" [{current}/{total}]"
+    fs += Formats.RESET
+    print(fs, end="\n" if newline else "")
 
 def confirmation_prompt(prompt: str, default: ConfirmationDefault = ConfirmationDefault.NO) -> bool:
     '''
@@ -426,6 +461,20 @@ def create_metadata_file(compositor: Compositor, directory: str, cursor: str):
         case _:
             raise Exception("No compositor mentioned or the compositor is unsupported")
 
+def count_buildable_cursors() -> int:
+    '''
+    Counts how many cursors in the database are buildable. Animated cursors are
+    excluded from this count.
+
+    Returns:
+        The total number of buildable cursors (excluding animated cursors)
+    '''
+    count = 0
+    for _, cursor in db["cursors"].items():
+        if cursor["build"]:
+            count += 1
+    return count
+
 def setup_theme_directories(theme_dir: str, compositor: Compositor):
     '''
     Compositors will have their own way of structuring their themes. This
@@ -458,6 +507,7 @@ def create_cursor_metadatas(theme_dir: str, compositor: Compositor):
         compositor (Compositor enum):
             The compositor for which the theme is structured around
     '''
+    count: int = 1
     for name, cursor in db["cursors"].items():
         if not cursor["build"]:
             continue
@@ -470,10 +520,17 @@ def create_cursor_metadatas(theme_dir: str, compositor: Compositor):
                 output_dir = f"{theme_dir}/cursors_scalable/{fin_name}"
             case _:
                 output_dir = f"{theme_dir}/{fin_name}"
-
+        
+        if (log_level != DEBUG):
+            print_procedure(Formats.clear_line() +
+            f"{procedure_cnt}. Generating metadata files for static cursors", count, num_cursors, False)
         debug(f"Generating metadata for {name}")
+
         os.makedirs(output_dir, exist_ok=True)
         create_metadata_file(compositor, output_dir, name)
+        count += 1
+    if (log_level != DEBUG):
+        print()
 
 def query_svg(source_path: str) -> list[str]:
     '''
@@ -661,7 +718,7 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
     else:
         debug(f"\tTONE: None!")
 
-
+    count: int = 1
     for name, cursor in db["cursors"].items():
         if not cursor["build"]:
             continue
@@ -680,7 +737,12 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
             case _:
                 output_dir = f"{theme_dir}/{fin_name}"
 
+        # Live update the counter for each cursor we are creating metadatas for
+        if (log_level != DEBUG):
+            print_procedure(Formats.clear_line() + 
+            f"{procedure_cnt}. Generating plain SVGs for static cursors", count, num_cursors, False)
         debug(f"Generating Plain SVG for {name}")
+
         os.makedirs(output_dir, exist_ok=True)
         results: subprocess.CompletedProcess[bytes]
         if (db["theme"] == ThemeColor.WHITE and not has_tone) or cursor.get("skip_theming", False):
@@ -703,10 +765,13 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
             error = True
             # Convert the raw string into a formatted string, then print it.
             print(str(results.stderr).encode("utf-8").decode("unicode_escape"))
+        count += 1
 
     if error and not OVERRIDE_PROC_ERRORS:
         print("One or more errors have occurred while making the Plain SVGs. Can not continue with building until errors have been resolved.")
         exit(1)
+    if (log_level != DEBUG):
+        print()
 
 def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: bool):
     '''
@@ -724,6 +789,7 @@ def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: b
             file name will be appended to be considered a temp file.
     '''
     error: bool = False
+    count = 1
     for name, cursor in db["cursors"].items():
         if not cursor["build"]:
             continue
@@ -738,8 +804,11 @@ def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: b
                 dir = f"{theme_dir}/cursors_scalable/{fin_name}"
             case _:
                 dir = f"{theme_dir}/{fin_name}"
-        
-        debug(f"Optimizing SVG: {plain_svg}")
+
+        if (log_level != DEBUG):
+            print_procedure(Formats.clear_line() + 
+            f"{procedure_cnt}. Optimizing SVGs for static cursors", count, num_cursors, False)
+
         result = subprocess.run(
             ["scour", f"{dir}/{plain_svg}", f"{dir}/{output_file_name}", 
             "--set-precision=4", "--strip-xml-prolog", "--remove-titles", 
@@ -749,9 +818,12 @@ def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: b
             capture_output=(log_level != DEBUG))
         if (result.returncode != 0):
             error = True
+        count += 1
     if error and not OVERRIDE_PROC_ERRORS:
         print("One or more errors have occurred while optimizing the Plain SVGs. Can not continue with building until errors have been resolved.")
         exit(1)
+    if (log_level != DEBUG):
+        print()
 
 def hourglass_cursors(theme_dir: str, compositor: Compositor):
     '''
@@ -800,11 +872,19 @@ def convert_to_qt(theme_dir: str):
             The file path to the folder that will be holding our cursor theme
     '''
     error: bool = False
+    count = 1
     for name, cursor in db["cursors"].items():
         if (not cursor["build"] and not is_animated(cursor)) or cursor.get("skip_bimi", False):
+            if cursor.get("skip_bimi", False):
+                count += 1 # Otherwise the count will be inaccurate
             continue
         fin_name: str = cursor.get("out_file", name)
         dir = f"{theme_dir}/cursors_scalable/{fin_name}"
+
+        if (log_level != DEBUG):
+            print_procedure(Formats.clear_line() + 
+            f"{procedure_cnt}. Making SVGs Qt compatible.", count, num_cursors + NUM_ANIMATED_CURSORS, False)
+
         if (not is_animated(cursor)):
             optimized_svg: str = f"{fin_name}-optimized.svg"
             output_file = f"{fin_name}.svg"
@@ -817,7 +897,7 @@ def convert_to_qt(theme_dir: str):
             file = f"{fin_name}.svg"
             staging_file = f"{fin_name}-c.svg"
 
-            debug(f"Converting SVG: {file}")
+            debug(f"Converting Animated SVG: {file}")
             result = subprocess.run(["./svgtinyps", "convert", f"{dir}/{file}", f"{dir}/{staging_file}", f"--title=\"{db['manifest']['name']}\""])
             if (result.returncode != 0):
                 error = True
@@ -840,10 +920,13 @@ def convert_to_qt(theme_dir: str):
                     break # For animated cursors, don't complete conversion
                 os.remove(f"{dir}/{file}")
                 os.rename(f"{dir}/{staging_file}", f"{dir}/{file}")
+        count += 1
 
     if error and not OVERRIDE_PROC_ERRORS:
         print("One or more errors have occurred while converting the optimized SVGs. Can not continue with building until errors have been resolved.")
         exit(1)
+    if (log_level != DEBUG):
+        print()
 
 def clean_up_artifacts(theme_dir: str, compositor: Compositor, bimi_converted: bool):
     '''
@@ -1079,12 +1162,17 @@ def install_theme(theme_dir: str, compositor: Compositor):
     
 def main():
     comp : Compositor
-    procedure_cnt: int = 1
+    global procedure_cnt
+    global num_cursors
 
     dependency_check()
 
     print("Welcome to the install script for Posy's cursors.")
-    print("Reminder: This build script and theme are not responsible for any damage done to your system or hardware.")
+    print(Formats.rich_txt(TextFormat.BOLD, Color8.YELLOW) +
+        "Disclaimer: " +
+        Formats.rich_txt(TextFormat.UNDERLINE) +
+        "This build script and theme are not responsible for any damage done to your system or hardware." +
+        Formats.RESET)
     print()
     if (args.debug):
         global log_level
@@ -1145,14 +1233,15 @@ def main():
     elif (not args.skip_optional_prompts):
         extra_opts: set[int] = multiselect_prompt("This theme offers extra cursors and alternatives on top of the regular selection. Here is a list of all the available extra cursors.", available_extras)
         apply_extras_prompt(available_extras, extra_opts)
+    num_cursors = count_buildable_cursors()
 
-    print(f"{procedure_cnt}. Creating appropriate theme directories")
+    print_procedure(f"{procedure_cnt}. Creating appropriate theme directories")
     theme_dir: str = f"./build/{folder_name}"
     os.makedirs(theme_dir, exist_ok=True)
     setup_theme_directories(theme_dir, comp)
     procedure_cnt += 1
 
-    print(f"{procedure_cnt}. Writing manifest")
+    print_procedure(f"{procedure_cnt}. Writing manifest")
 
     # Write theme manifest file
     match(comp):
@@ -1165,35 +1254,35 @@ def main():
             pass
     procedure_cnt += 1
 
-    print(f"{procedure_cnt}. Generating metadata files for static cursors")
+    print_procedure(f"{procedure_cnt}. Generating metadata files for static cursors", 0, 0, log_level == DEBUG)
     create_cursor_metadatas(theme_dir, comp)
     procedure_cnt += 1
 
-    print(f"{procedure_cnt}. Generating plain SVGs for static cursors")
+    print_procedure(f"{procedure_cnt}. Generating plain SVGs for static cursors", 0, 0, log_level == DEBUG)
     create_plain_svgs(theme_dir, comp)
     procedure_cnt += 1
 
     bimi: bool = (comp == Compositor.KWIN)
-    print(f"{procedure_cnt}. Optimizing SVGs for static cursors")
+    print_procedure(f"{procedure_cnt}. Optimizing SVGs for static cursors", 0, 0, log_level == DEBUG)
     optimize_plain_svgs(theme_dir, comp, bimi)
     procedure_cnt += 1
 
-    print(f"{procedure_cnt}. Generating animated cursors")
-    print("\tHourglass cursors")
+    print_procedure(f"{procedure_cnt}. Generating animated cursors")
+    print_procedure("\tHourglass cursors")
     hourglass_cursors(theme_dir, comp)
     procedure_cnt += 1
 
     if bimi:
-        print(f"{procedure_cnt}. Making SVGs Qt compatible.")
+        print_procedure(f"{procedure_cnt}. Making SVGs Qt compatible.", 0, 0, log_level == DEBUG)
         convert_to_qt(theme_dir)
         procedure_cnt += 1
 
-    print(f"{procedure_cnt}. Removing intermediate SVGs")
+    print_procedure(f"{procedure_cnt}. Removing intermediate SVGs")
     clean_up_artifacts(theme_dir, comp, bimi)
     procedure_cnt += 1
 
     if comp == Compositor.KWIN:
-        print(f"{procedure_cnt}. Generating aliases with symbolic links")
+        print_procedure(f"{procedure_cnt}. Generating aliases with symbolic links")
         create_alias_sym_links(theme_dir)
         procedure_cnt += 1
     
