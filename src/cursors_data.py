@@ -68,6 +68,11 @@ class CursorDesign(TypedDict):
             WARNING: Do not have cursors skip BIMI conversion unless you can
             verify that the SVG files are compliant with 1.2 Tiny. This should
             be treated as a last resort!
+        skip_theming (bool, Optional):
+            If set to True, this will skip theming procedures on the cursor.
+            Defaults to False. This attribute is meant as a slight performance
+            optimization for the few designs that remain the same throughout
+            all different themes.
 
         total_frames (int, optional):
             If this is an animated cursor, this functionally lists how many
@@ -85,6 +90,7 @@ class CursorDesign(TypedDict):
     size: tuple[int, int]
     build: bool
     skip_bimi: NotRequired[bool]
+    skip_theming: NotRequired[bool]
 
     total_frames: NotRequired[int]
     animation_speed: NotRequired[int]
@@ -126,11 +132,22 @@ class ThemeColor(enum.IntEnum):
     MONO = 2
     MONO_BLACK = 3
 
+class ThemePalette(TypedDict):
+    '''
+    The palette full of RGB colors (in hex format) that will be used to apply
+    the colors to SVGs to fall in line with the dictated theme
+    '''
+    primary: str
+    secondary: str
+    mono: bool
+    tone: NotRequired[str]
+    overrides: list[str]
+
 class Compositor(enum.Enum):
     '''
     This includes all of the Wayland compositors that support vector cursors.
     '''
-    UNSUPPORTED = ""
+    UNSUPPORTED = "misc"
     HYPRLAND = "hyprland"
     KWIN = "plasma"
 
@@ -139,12 +156,23 @@ class Compositor(enum.Enum):
         match(s.lower()):
             case "hyprland":
                 return Compositor.HYPRLAND
+            case "hyprcursor":
+                return Compositor.HYPRLAND
             case "kwin":
                 return Compositor.KWIN
             case "plasma":
                 return Compositor.KWIN
             case _:
                 return Compositor.UNSUPPORTED
+    @staticmethod
+    def theme_name(c: Compositor) -> str:
+        match(c):
+            case Compositor.HYPRLAND:
+                return "hyprcursor"
+            case Compositor.KWIN:
+                return "plasma"
+            case _:
+                return ""
 
 class CursorCollection(TypedDict):
     '''
@@ -158,38 +186,44 @@ class CursorCollection(TypedDict):
             design name
         theme (ThemeColor):
             The color of the theme.
+        nominal_size (int):
+            The base size that all cursors will be matched to.
     '''
     manifest: CursorManifest
     cursors: dict[str, CursorDesign]
     theme: ThemeColor
+    nominal_size: int
 
-def kwin_nominal_size(cursor: str) -> int:
-    '''
-    A helper function that specifically takes the size attribute and crushes it
-    to a singular number for the KWin compositor.
-
-    Parameters:
-        cursor: The name of the cursor to get the size of
-
-    Returns:
-        The largest number in the size attribute 
-    '''
-    if not cursor in db["cursors"]:
-        return -1
-    return max(db["cursors"][cursor]["size"])
+def get_theme_palette(theme: ThemeColor) -> ThemePalette:
+    match(theme):
+        case ThemeColor.WHITE | ThemeColor.MONO:
+            return {
+                "primary": "#ffffff",
+                "secondary": "#000000",
+                "mono": theme == ThemeColor.MONO,
+                "overrides": ["#ffffff"]
+            }
+        case ThemeColor.BLACK | ThemeColor.MONO_BLACK:
+            return {
+                "primary": "#000000",
+                "secondary": "#ffffff",
+                "mono": theme == ThemeColor.MONO_BLACK,
+                "overrides": ["#3f3f3f"]
+            }
 
 # Some attributes will be later modified by scripts to tailor user preferences
 db : CursorCollection = {
     "manifest": {
         "name": "Posy's Cursors Scalable",
         "tags": [],
-        "description": "Posy's infamous cursors, containing unrasterized and additional cursors for the Linux user",
+        "description": "Posy's infamous cursors, containing unrasterized and additional cursors for the Linux user.",
 
         "authors": ["Michiel De Boer", "Synth Morxemplum"],
         "version": "1.4"
     },
     
     "theme": ThemeColor.WHITE,
+    "nominal_size": 24,
 
     "cursors": {
         "default": {
@@ -221,6 +255,7 @@ db : CursorCollection = {
 
         "beam": {
             "build": True,
+            "skip_theming": True,
             "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["text", "ibeam", "xterm"]
@@ -229,6 +264,7 @@ db : CursorCollection = {
         "vertical-text": {
             "build": True,
             "src_file": "hbeam",
+            "skip_theming": True,
             "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["vertical_text", "hbeam"]
@@ -251,9 +287,10 @@ db : CursorCollection = {
 
         "precision": {
             "build": True,
+            "skip_theming": True,
             # The gradients in this design are 1.2 Tiny compliant. <stop> is allowed in 1.2 Tiny
             # BIMI for some stupid reason doesn't allow <stop>, making gradients completely pointless.
-            "skip_bimi": True, 
+            "skip_bimi": True,
             "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["cross", "cross_reverse", "diamond_cross", "tcross", "crosshair"]
@@ -315,12 +352,14 @@ db : CursorCollection = {
 
         "col-resize": {
             "build": True,
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["col_resize"]
         },
 
         "row-resize": {
             "build": True,
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["row_resize"]
         },
@@ -328,6 +367,7 @@ db : CursorCollection = {
         "e-resize": {
             "build": True,
             "src_file": "resize-E",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_E"]
         },
@@ -335,6 +375,7 @@ db : CursorCollection = {
         "n-resize": {
             "build": True,
             "src_file": "resize-N",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_N"]
         },
@@ -342,6 +383,7 @@ db : CursorCollection = {
         "ne-resize": {
             "build": True,
             "src_file": "resize-Ne",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_Ne"]
         },
@@ -349,6 +391,7 @@ db : CursorCollection = {
         "nw-resize": {
             "build": True,
             "src_file": "resize-Nw",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_Nw"]
         },
@@ -356,6 +399,7 @@ db : CursorCollection = {
         "s-resize": {
             "build": True,
             "src_file": "resize-S",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_S"]
         },
@@ -363,6 +407,7 @@ db : CursorCollection = {
         "se-resize": {
             "build": True,
             "src_file": "resize-Se",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_Se"],
         },
@@ -370,6 +415,7 @@ db : CursorCollection = {
         "sw-resize": {
             "build": True,
             "src_file": "resize-Sw",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_Sw"]
         },
@@ -377,6 +423,7 @@ db : CursorCollection = {
         "w-resize": {
             "build": True,
             "src_file": "resize-W",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_W"]
         },
@@ -384,6 +431,7 @@ db : CursorCollection = {
         "ew-resize": {
             "build": True,
             "src_file": "resize-EW",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["split_v", "sb_v_double_arrow", "size_hor", "size-hor", "v_double_arrow", "size_EW"]
         },
@@ -391,6 +439,7 @@ db : CursorCollection = {
         "nesw-resize": {
             "build": True,
             "src_file": "resize-NeSw",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["fb_double_arrow", "size_bdiag", "size_NeSw"]
         },
@@ -398,6 +447,7 @@ db : CursorCollection = {
         "ns-resize": {
             "build": True,
             "src_file": "resize-NS",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["split_h", "h_double_arrow", "sb_h_double_arrow", "size_ver", "size-ver", "size_NS"]
         },
@@ -405,6 +455,7 @@ db : CursorCollection = {
         "nwse-resize": {
             "build": True,
             "src_file": "resize-NwSe",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["size_fdiag", "size_NwSe"]
         },
@@ -446,8 +497,9 @@ db : CursorCollection = {
 
         "alt": {
             "build": False,
-            "extra": True,
+            "extra": False,
             "out_file": "default",
+            "hotspot": (0.5, 0),
             "size": (24, 24),
             "aliases": ["arrow", "left_ptr"]
         },
@@ -464,7 +516,9 @@ db : CursorCollection = {
         "beam-v2": {
             "build": False,
             "extra": True,
+            "skip_theming": True,
             "out_file": "beam",
+            "hotspot": (0.5, 0.5),
             "size": (24, 24),
             "aliases": ["text", "ibeam", "xterm"]
         },
@@ -472,6 +526,7 @@ db : CursorCollection = {
         "precision-v2": {
             "build": False,
             "extra": True,
+            "skip_theming": True,
             "out_file": "precision",
             "hotspot": (0.5, 0.5),
             "size": (24, 24),
@@ -486,27 +541,22 @@ db : CursorCollection = {
             "aliases": ["question_arrow", "left_ptr_help", "whats_this", "dnd-ask", "5c6cd98b3f3ebcb1f9c7f1c204630408", "d9ce0ab605698f320427677b458ad60b"]
         },
 
-        # TODO: As part of theming, skin tones will be integrated directly in the original designs where they apply
-        # Light: eed9caff
-        # Medium: caae99ff
-        # Dark: 906545ff
-
         ### EXTRA CURSORS
 
         "social-person": {
             "build": False,
             "extra": True,
             "out_file": "person",
-            "hotspot": (0.253, 0),
-            "size": (28, 28)
+            "hotspot": (0.221, 0),
+            "size": (32, 32)
         },
 
         "map-pin": {
             "build": False,
             "extra": True,
             "out_file": "pin",
-            "hotspot": (0.253, 0),
-            "size": (28, 28)
+            "hotspot": (0.221, 0),
+            "size": (32, 32)
         }
     }
 }

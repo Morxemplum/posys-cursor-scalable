@@ -13,43 +13,34 @@ Originally, I did this to create a [hyprcursor](https://wiki.hyprland.org/Hypr-E
 
 This snowballs into XCursor themes having *huge* file sizes that become noticable when entering the megabyte territory. Nobody likes wasted storage, especially for underlying system files like mouse cursors. By replacing the outdated XCursor format with a cursor implementation that uses vector graphics, only one vector map has to be made per cursor (or frame of an animation). Since vector graphics are infinitely scalable, not only can we cover all of the sizes previously possible, but newer sizes that would be difficult to accommodate with rasters.
 
-However, this repository does more than Hyprcursor themes, now offering themes for KDE Plasma. I based the themes around how Posy distributes them on his website (minus some inconsistencies). When adoption of vector cursors continues, I will be glad to make additional themes for more desktop environments.
+I based the themes around how Posy distributes them on his website (minus some inconsistencies). As adoption of vector cursors continues, I will be glad to expand support for more compositors.
 
-## Editing the Source SVGs
+## Building and Installing The Theme
 
 The source SVGs behind the cursors are made using [Inkscape](https://inkscape.org/), so it is recommended you use this program if you want to edit them.
 
-### Procedures for KDE Plasma
+### Using the Build Script
+
 > [!NOTE]
-> You need KDE Plasma 6.2 or later to use this theme.
+> If you are on KDE Plasma, you must be running 6.2 or later to use this theme.
 
-The themes in the repository are already pre-configured if you want an "SVG only" theme. All you have to do is copy and paste the folder into `.icons` or `~/.local/share/icons` folder. However, KDE Plasma will fall back to legacy XCursors if it comes across an application that doesn't support vector cursors, mainly GTK/adwaita applications or anything running under XWayland. In addition, aliases exist for alternative naming schemes or to fill in for unavailable designs, and these aren't included.
+Through Python, you can easily run a script that will build the theme (and install it) for you. Just simply clone the repository and run `build.py`, and follow the instructions. Currently supported compositors are **Hyprland** and **KDE Plasma**.
 
-To add legacy XCursors and aliases to the theme, head into `plasma_themes/src/build_tools` and run `build.sh`. You are more than welcome to add additional size options by adding to the `SCALES` string, but the defaults should cover a variety of sizes. 
+### Clarifications for KDE Plasma
 
-### Procedures for Hyprland
-You can run `install_hyprcursor.sh` after cloning the repository and follow the instructions. It will build and install the hyprcursor theme for you. 
+If you want an "SVG only" theme, run the build script and you'll be good to go. However, KDE Plasma will fall back to legacy XCursors if it comes across an application that doesn't support vector cursors, mainly GTK/adwaita applications or anything running under XWayland. The build script does not support XCursor fallbacks *yet*. To add legacy XCursors and aliases to the theme, head into `plasma_themes/src/build_tools` and run `build.sh`, and you'll have a completed theme in the folder of your chosen theme. You are more than welcome to add additional size options by adding to the `SCALES` string, but the defaults should cover a variety of sizes. 
 
 ### From a tarball
 Alternatively, you can download a prebuilt theme as a tarball from the [releases](https://github.com/Morxemplum/posys-cursor-scalable/releases) page. For KDE Plasma, the tarballs will include XCursor fallbacks and aliases for a better user experience.
 
 1. Extract the top level folder from the tarball.
 2. Move the folder into `.icons` or `~/.local/share/icons`.
-#### For Hyprland
-3. Update your `hyprland.conf` file with the following lines to apply the theme (changing the theme and size to your liking)
-```conf
-env = HYPRCURSOR_THEME,Posys-Cursor-Scalable
-env = HYPRCURSOR_SIZE,24
-```
-Alternatively, you can also type the following in your terminal to instantly apply the cursor theme (may not be permanent)
-```
-hyprctl setcursor Posys-Cursor-Scalable 24
-```
-#### For KDE Plasma
-3. Close any instances of KDE System Settings and open it. Navigate to `Colors & Themes > Cursors`.
-4. Select your installed variant of Posy's Cursor (Scalable), and confirm by clicking "Apply"
 
 ### Using the Nix Flake
+
+> [!CAUTION]
+> Due to the rewrite of the building process, the Nix Flake may no longer work as intended and needs to be updated. I am hoping this will be resolved before 1.4's release.
+
 For Nix users this repo provides a consumable flake.
 
 Add this repo to your `flake.nix` inputs:
@@ -85,8 +76,26 @@ Then apply the provided overlay to your nixpkgs, which will make `pkgs.posy-scal
 }
 ```
 
+## Post-installation 
+
+### Hyprland
+Update your `hyprland.conf` file with the following lines to apply the theme (changing the theme and size to your liking)
+```conf
+env = HYPRCURSOR_THEME,hyprcursor_posys_cursor_scalable
+env = HYPRCURSOR_SIZE,24
+```
+Alternatively, you can also type the following in your terminal to instantly apply the cursor theme (may not be permanent)
+```
+hyprctl setcursor hyprcursor_posys_cursor_scalable 24
+```
+### KDE Plasma
+1. Close any instances of KDE System Settings and open it. Navigate to `Colors & Themes > Cursors`.
+2. Select your installed variant of Posy's Cursor Scalable, and confirm by clicking "Apply"
+
 ## "Extra" cursors
-Similar to the original Posy's cursors, this repository has the "extra" cursors that you can swap out some of the regular cursors with. These are completely optional cursors and only exist to offer a degree of customization. Some cursors will require a bit of hyprcursor knowledge in order to swap correctly, but these steps should be able to cover most of them.
+Similar to the original Posy's cursors, this repository has the "extra" cursors that you can swap out some of the regular cursors with. These are completely optional cursors and only exist to offer a degree of customization. You can easily swap or add in extra cursors through the build script, making it easy to tailor the theme to your liking.
+
+## Building A Cursor Manually
 0. If needed, modify and copy over the metadata file for the corresponding custom cursor (otherwise it should be taken care of for you)
 1. Open up the extra cursor that you want to swap out in Inkscape or a sufficient alternative.
 2. If it doesn't exist, create a new folder in the theme you want to modify and name it after the cursor you'll be exporting

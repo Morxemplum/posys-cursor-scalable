@@ -6,7 +6,7 @@ import subprocess
 import sys
 from copy import deepcopy
 from collections import deque
-from logging import debug
+from logging import INFO, DEBUG, getLogger
 from os import remove, rename
 from pathlib import Path
 
@@ -14,10 +14,12 @@ from pathlib import Path
 repo_dir = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(repo_dir))
 # We must maintain the same namespace as the main build script, otherwise the Python interpreter will bug out on certain logic.
-from src.cursors_data import KWinCursor, KWinAnimatedCursor, Compositor, db, kwin_nominal_size
+from src.cursors_data import KWinCursor, KWinAnimatedCursor, Compositor, ThemeColor, db
+from src.format import Formats, TextFormat, Color8, init_logger
 
 REVERSE = True # Posy's animation goes in the opposite direction of the gradient
 subprocess_output = False
+is_module = False
 # Dict that directly names all hourglass cursors and maps their template SVG files
 CURSORS = {
     "progress" : "background-template.svg", 
@@ -37,8 +39,10 @@ class ArgConsts(argparse.Namespace):
     frame_rate: int # pyright: ignore[reportUninitializedInstanceVariable]
     compositor: str # pyright: ignore[reportUninitializedInstanceVariable]
     output: str # pyright: ignore[reportUninitializedInstanceVariable]
-    mono: bool | None # pyright: ignore[reportUninitializedInstanceVariable]
+    mono: bool # pyright: ignore[reportUninitializedInstanceVariable]
+    black: bool # pyright: ignore[reportUninitializedInstanceVariable]
     cursor: str | None # pyright: ignore[reportUninitializedInstanceVariable]
+    debug: bool # pyright: ignore[reportUninitializedInstanceVariable]
 
 def animated_path() -> str:
     '''
@@ -59,6 +63,54 @@ def animated_path() -> str:
         # The repository folder can change names, so treat it as default case
         case _:
             return "src/animated"
+
+def print_progress(s : str, label: str):
+    '''
+    Prefab print statement that applies text formatting that communicates
+    program procedures with a progress bar of the procedure. This is similar
+    to print_procedure from the main build script, but progress is mandatory
+    here, it is fully configurable, and newlines are not printed regardless.
+
+    Parameters:
+        s (str):
+            The string that will be printed to the console
+        current (int):
+            A part of a progress bar that shows the current progress of the 
+            task
+        total (int):
+            A part of the progress bar that shows how much the task needs to
+            be performed before it is done. By default, this value is set to 0,
+            which disables showing progress in the final print statement.
+    '''
+    if logger.getEffectiveLevel() == DEBUG:
+        return
+    color : str
+    if (label == "Done"):
+        color = Formats.rich_txt(Color8.GREEN)
+    else:
+        color = Formats.rich_txt(Color8.CYAN)
+    fs: str = Formats.rich_txt(TextFormat.BOLD) + s + color + f" [{label}]" + Formats.RESET
+    print(fs, end="")
+
+def procedure_str(cursor: str) -> str:
+    '''
+    Creates a formatted procedure string while the animated cursor is
+    generating. The formatting must be different between running this script
+    independently or as a module.
+
+    Parameters:
+        cursor (str):
+            The name of the string that is being generated. If this script is
+            running independently, this value is ignored.
+
+    Returns:
+        The formatted procedure string that will fit the appropriate build 
+        environment
+    '''
+    if is_module:
+        return f"{" " * 8}{Formats.branch(1)} Generating {cursor}"
+    else:
+        return f"{" " * 4}{Formats.branch(1)} Animating"
 
 def create_hyprland_metadata(path: str, cursor: str, frames: int, rate: int, delay: int):
     '''
@@ -139,7 +191,7 @@ def create_kwin_metadata(path: str, cursor: str, frames: int, rate: int, delay: 
 
     data = db["cursors"][cursor]
     hotspot: tuple[float, float] = data.get("hotspot", (0, 0))
-    nominal_size = kwin_nominal_size(cursor)
+    nominal_size = db["nominal_size"]
 
     frame_dict: KWinCursor = {
         "filename": f"{cursor}.svg",
@@ -194,6 +246,7 @@ def generate_frames(path: str, cursor: str, total_frames : int):
     num_digits = int(math.log10(total_frames) + 1)
     start = 1
     end = len(colors) + 2
+    proc_str = procedure_str(cursor)
 
     template = f"{animated_path()}/{CURSORS[cursor]}"
     overflow = 0
@@ -204,19 +257,28 @@ def generate_frames(path: str, cursor: str, total_frames : int):
 
     segment_length: float
     hypotenuse: float
+    begin_statements: list[str] = []
     match(cursor):
         case "progress":
             hypotenuse = 10.67
             segment_length = hypotenuse / 7
+            if (db["theme"] == ThemeColor.BLACK):
+                begin_statements = [
+                    "select-by-id:cursor",
+                    "object-set-property:fill, #000000",
+                    "object-set-property:stroke, #ffffff",
+                    "unselect-by-id:cursor"
+                ]
         case "wait":
             segment_length = 3.43
             hypotenuse = segment_length * 7
         case _:
             return
-    
-    begin_statements = [f"select-by-id:layer{overflow}", f"select-by-id:hourglass{overflow}", "delete"]
+
+    begin_statements.extend([f"select-by-id:layer{overflow}", f"select-by-id:hourglass{overflow}", "delete"])
 
     for i in range(0, total_frames):
+        print_progress(Formats.clear_line() + proc_str, f"{i + 1}/{total_frames}")
         debug(f"\t\tGenerating frame {str(i).zfill(num_digits)}")
         statements = deepcopy(begin_statements)
         t_amount = i/total_frames * hypotenuse
@@ -295,6 +357,7 @@ def generate_frames_mono(path: str, cursor: str, total_frames: int):
     start = 1
     k_start = start + 1
     end = 8
+    proc_str = procedure_str(cursor)
 
     template = f"{animated_path()}/{MONO_CURSORS[cursor]}"
 
@@ -306,20 +369,29 @@ def generate_frames_mono(path: str, cursor: str, total_frames: int):
     
     segment_length: float
     hypotenuse: float
+    begin_statements: list[str] = []
     match(cursor):
         case "progress":
             hypotenuse = 10.67
             segment_length = hypotenuse / 7
+            if (db["theme"] == ThemeColor.MONO_BLACK):
+                begin_statements = [
+                    "select-by-id:cursor",
+                    "object-set-property:fill, #000000",
+                    "object-set-property:stroke, #ffffff",
+                    "unselect-by-id:cursor"
+                ]
         case "wait":
             segment_length = 3.43
             hypotenuse = segment_length * 7
         case _:
             return
 
-    begin_statements = [f"select-by-id:layer{overflow}", f"select-by-id:hourglass{overflow}", "delete"]
+    begin_statements.extend([f"select-by-id:layer{overflow}", f"select-by-id:hourglass{overflow}", "delete"])
     mono_hypotenuse = hypotenuse * (2/7)
 
     for i in range(0, total_frames):
+        print_progress(Formats.clear_line() + proc_str, f"{i + 1}/{total_frames}")
         debug(f"\t\tGenerating frame {str(i).zfill(num_digits)}")
         statements = deepcopy(begin_statements)
         t_amount = i/total_frames * mono_hypotenuse
@@ -430,6 +502,7 @@ def generate_cursor(path: str, cursor: str, total_frames: int, rate: int, compos
     else:
         generate_frames(path, cursor, total_frames)
 
+    print_progress(Formats.clear_line() + procedure_str(cursor), "Writing Metadata")
     debug("\tWriting to metadata file")
     delay: int = math.floor(1000 / rate)
     match(compositor):
@@ -439,9 +512,14 @@ def generate_cursor(path: str, cursor: str, total_frames: int, rate: int, compos
             create_kwin_metadata(path, cursor, total_frames, rate, delay)
         case _:
             pass
+
+    print_progress(Formats.clear_line() + procedure_str(cursor), "Optimizing")
     debug("\tOptimizing SVG files")
-    
     optimize_frames(path, cursor, total_frames)
+    
+    print_progress(Formats.clear_line() + procedure_str(cursor), "Done")
+    if (logger.getEffectiveLevel() != DEBUG):
+        print()
 
 def main():
     '''
@@ -449,27 +527,65 @@ def main():
     standalone. The main build script doesn't call this function!
     '''
     total_frames: int = math.ceil(args.duration * args.frame_rate / 1000)
-    
-    print("Frames to generate:", total_frames)
+    match(args.mono, args.black):
+        case False, False:
+            db["theme"] = ThemeColor.WHITE
+        case False, True:
+            db["theme"] = ThemeColor.BLACK
+        case True, False:
+            db["theme"] = ThemeColor.MONO
+        case True, True:
+            db["theme"] = ThemeColor.MONO_BLACK
+
+    info(f"Frames to generate: {total_frames}")
 
     if args.cursor:
         if args.cursor in CURSORS:
-            print(f"Generating selected cursor")
+            info(f"Generating selected cursor")
             generate_cursor(args.output, args.cursor, total_frames, args.frame_rate, Compositor.from_str(args.compositor), getattr(args, "mono", False))
         else:
-            print("ERROR: Invalid cursor name. Accepted values are: wait, progress.")
+            error("Invalid cursor name. Accepted values are: wait, progress.")
     else: 
         for cursor in CURSORS.keys():
-            print(f"Generating {cursor}")
+            info(f"Generating {cursor}")
             generate_cursor(args.output, cursor, total_frames, args.frame_rate, Compositor.from_str(args.compositor), getattr(args, "mono", False))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Individual generation script for the hourglass animated cursors (wait & process)")
-    _ = parser.add_argument("duration", type=int, help="How long the animation of the cursor will last (in milliseconds)")
-    _ = parser.add_argument("frame_rate", type=int, help="How many frames will be made per second of animation. Delays will be calculated from this value.")
-    _ = parser.add_argument("compositor", type=str, help="The Wayland compositor that the cursors will be made for (hyprland, kwin)")
-    _ = parser.add_argument("-o", "--output", type=str, default=".", help="Specify a custom path to output the build artifacts to. Otherwise, it'll build in the same directory.")
-    _ = parser.add_argument("--mono", action="store_true", help="If used, the monotone variants will be generated instead of the colorfuls")
-    _ = parser.add_argument("--cursor", type=str, help="Picks a specific hourglass cursor to generate. If not present, all cursors will be generated.")
+    _ = parser.add_argument("duration", type=int, 
+        help="How long the animation of the cursor will last (in milliseconds)")
+    _ = parser.add_argument("frame_rate", type=int, 
+        help="How many frames will be made per second of animation. Delays will be calculated from this value.")
+    _ = parser.add_argument("compositor", type=str, 
+        help="The Wayland compositor that the cursors will be made for (hyprland, kwin)")
+    _ = parser.add_argument("-o", "--output", type=str, default=".", 
+        help="Specify a custom path to output the build artifacts to. Otherwise, it'll build in the same directory.")
+    _ = parser.add_argument("--mono", action="store_true", default=False, 
+        help="If used, the monotone variants will be generated instead of the colorfuls")
+    _ = parser.add_argument("--black", action="store_true", default=False, 
+        help="If used, the progress cursor head will be colored according to the palette of the Black theme")
+    _ = parser.add_argument("--cursor", type=str, 
+        help="Picks a specific hourglass cursor to generate. If not present, all cursors will be generated.")
+    _ = parser.add_argument("--debug", action="store_true",
+        help="Enables debug logging and more verbose output, including output from external processes like Inkscape and Scour.")
     args: ArgConsts = parser.parse_args(namespace=ArgConsts())
+
+    log_level = INFO
+    if (args.debug):
+        log_level = DEBUG
+    logger = init_logger(log_level, "build_hourglasses")
+
+    # Create aliases that will make calling our logging functions easier
+    debug = logger.debug
+    info = logger.info
+    error = logger.error
+
     main()
+else:
+    is_module = True
+    # Properly link the logger to the main build script. The main build script should be the only script calling this one.
+    logger = getLogger("build_main")
+
+    debug = logger.debug
+    info = logger.info
+    error = logger.error
