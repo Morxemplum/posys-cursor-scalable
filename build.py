@@ -218,17 +218,21 @@ def multiselect_prompt(prompt: str, option_labels: list[str]) -> set[int]:
 
     return set()
 
-def dependency_check():
+def dependency_check() -> bool:
     '''
     Function that goes over all of the dependencies needed by the program. Any
     missing dependencies should immediately error and terminate the program.
+
+    Returns:
+        Whether the user has all dependencies installed
     '''
     inkscape: str | None = shutil.which("inkscape")
     if not inkscape:
-        raise OSError("Inkscape not installed")
+        error("Inkscape not installed")
     scour: str | None = shutil.which("scour")
     if not scour:
-        raise OSError("Scour not installed")
+        error("Scour not installed")
+    return bool(inkscape and scour)
 
 def bimi_dependency_check():
     '''
@@ -248,10 +252,12 @@ def bimi_dependency_check():
     print("If you made your own installation, please ensure that the program name is stripped down to \"svgtinyps\".\n")
     install_svgtinyps: bool = confirmation_prompt("Install \"svgtinyps\" for the current user? (Requires curl)", ConfirmationDefault.YES)
     if not install_svgtinyps:
-        raise OSError("Unable to create KWin theme (missing svgtinyps dependency)")
+        critical("Unable to create KWin theme (missing svgtinyps dependency)")
+        exit(1)
     curl: str | None = shutil.which("curl")
     if not curl:
-        raise OSError("curl not installed")
+        critical("curl not installed")
+        exit(1)
     result = subprocess.run(["curl", "-L", "https://github.com/SRWieZ/svgtinyps-cli/releases/download/v1.4.0/svgtinyps-linux-x86_64", "-o", "./svgtinyps"])
     # If an error occurs in installing svgtinyps, error out of the program
     try:
@@ -464,7 +470,8 @@ def create_metadata_file(compositor: Compositor, directory: str, cursor: str):
         case Compositor.KWIN:
             create_kwin_metadata(directory, cursor)
         case _:
-            raise Exception("No compositor mentioned or the compositor is unsupported")
+            critical("No compositor mentioned or the compositor is unsupported")
+            exit(1)
 
 def count_buildable_cursors() -> int:
     '''
@@ -1183,7 +1190,9 @@ def main():
     global procedure_cnt
     global num_cursors
 
-    dependency_check()
+    if not dependency_check():
+        critical("Your system is missing dependencies to generate the theme. Install the missing dependencies before retrying.")
+        exit(1)
 
     print("Welcome to the install script for Posy's cursors.")
     print(Formats.rich_txt(TextFormat.BOLD, Color8.YELLOW) +
