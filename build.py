@@ -63,13 +63,18 @@ def print_procedure(s : str, current: int = 0, total: int = 0, newline: bool = T
             which disables showing progress in the final print statement.
         newline (bool, Optional):
             After finishing the print statement, move to the next line if set 
-            to True (which is the default value).
+            to True. By default, this is set to true. This value is ignored if
+            progress is considered completed.
     '''
     fs: str = Formats.rich_txt(TextFormat.BOLD) + s
     if total > 0:
         if log_level == DEBUG:
             return
-        fs += Formats.rich_txt(Color8.CYAN) + f" [{current}/{total}]"
+        if current < 0 or current > total:
+            fs += Formats.rich_txt(Color8.GREEN) + " [Done]"
+            newline = True
+        else:
+            fs += Formats.rich_txt(Color8.CYAN) + f" [{current}/{total}]"
     fs += Formats.RESET
     print(fs, end="\n" if newline else "")
 
@@ -530,7 +535,8 @@ def create_cursor_metadatas(theme_dir: str, compositor: Compositor):
         create_metadata_file(compositor, output_dir, name)
         count += 1
     if (log_level != DEBUG):
-        print()
+        print_procedure(Formats.clear_line() +
+            f"{procedure_cnt}. Generating metadata files for static cursors", -1, num_cursors)
 
 def query_svg(source_path: str) -> list[str]:
     '''
@@ -771,7 +777,8 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
         critical("One or more errors have occurred while making the Plain SVGs. Can not continue with building until errors have been resolved.")
         exit(1)
     if (log_level != DEBUG):
-        print()
+        print_procedure(Formats.clear_line() +
+            f"{procedure_cnt}. Generating plain SVGs for static cursors", -1, num_cursors)
 
 def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: bool):
     '''
@@ -823,7 +830,8 @@ def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: b
         critical("One or more errors have occurred while optimizing the Plain SVGs. Can not continue with building until errors have been resolved.")
         exit(1)
     if (log_level != DEBUG):
-        print()
+        print_procedure(Formats.clear_line() +
+            f"{procedure_cnt}. Optimizing SVGs for static cursors", -1, num_cursors)
 
 def hourglass_cursors(theme_dir: str, compositor: Compositor):
     '''
@@ -934,7 +942,8 @@ def convert_to_qt(theme_dir: str):
         critical("Errors have occurred while converting the optimized SVGs. Can not continue with building until errors have been resolved.")
         exit(1)
     if (log_level != DEBUG):
-        print()
+        print_procedure(Formats.clear_line() +
+            f"{procedure_cnt}. Making SVGs Qt compatible.", -1, num_cursors)
 
 def clean_up_artifacts(theme_dir: str, compositor: Compositor, bimi_converted: bool):
     '''
