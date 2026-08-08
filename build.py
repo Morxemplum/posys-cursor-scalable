@@ -901,7 +901,7 @@ def create_alias_sym_links(theme_dir: str):
             # Do not recreate the symlink if it already exists, otherwise we will get errors
             if os.path.islink(sym_link):
                 continue
-            debug(f"Creating alias \"{alias}\" for \"{cursor}\"")
+            debug(f"Creating alias \"{alias}\" for \"{fin_name}\"")
             _ = subprocess.run(["ln", "-s", rel_dir, sym_link])
 
 def extra_refreshed_designs():
