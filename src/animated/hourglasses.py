@@ -15,10 +15,11 @@ repo_dir = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(repo_dir))
 # We must maintain the same namespace as the main build script, otherwise the Python interpreter will bug out on certain logic.
 from src.cursors_data import KWinCursor, KWinAnimatedCursor, Compositor, ThemeColor, db
-from src.format import init_logger
+from src.format import Formats, TextFormat, Color8, init_logger
 
 REVERSE = True # Posy's animation goes in the opposite direction of the gradient
 subprocess_output = False
+is_module = False
 # Dict that directly names all hourglass cursors and maps their template SVG files
 CURSORS = {
     "progress" : "background-template.svg", 
@@ -62,6 +63,54 @@ def animated_path() -> str:
         # The repository folder can change names, so treat it as default case
         case _:
             return "src/animated"
+
+def print_progress(s : str, label: str):
+    '''
+    Prefab print statement that applies text formatting that communicates
+    program procedures with a progress bar of the procedure. This is similar
+    to print_procedure from the main build script, but progress is mandatory
+    here, it is fully configurable, and newlines are not printed regardless.
+
+    Parameters:
+        s (str):
+            The string that will be printed to the console
+        current (int):
+            A part of a progress bar that shows the current progress of the 
+            task
+        total (int):
+            A part of the progress bar that shows how much the task needs to
+            be performed before it is done. By default, this value is set to 0,
+            which disables showing progress in the final print statement.
+    '''
+    if logger.getEffectiveLevel() == DEBUG:
+        return
+    color : str
+    if (label == "Done"):
+        color = Formats.rich_txt(Color8.GREEN)
+    else:
+        color = Formats.rich_txt(Color8.CYAN)
+    fs: str = Formats.rich_txt(TextFormat.BOLD) + s + color + f" [{label}]" + Formats.RESET
+    print(fs, end="")
+
+def procedure_str(cursor: str) -> str:
+    '''
+    Creates a formatted procedure string while the animated cursor is
+    generating. The formatting must be different between running this script
+    independently or as a module.
+
+    Parameters:
+        cursor (str):
+            The name of the string that is being generated. If this script is
+            running independently, this value is ignored.
+
+    Returns:
+        The formatted procedure string that will fit the appropriate build 
+        environment
+    '''
+    if is_module:
+        return f"{" " * 8}{Formats.branch(1)} Generating {cursor}"
+    else:
+        return f"{" " * 4}{Formats.branch(1)} Animating"
 
 def create_hyprland_metadata(path: str, cursor: str, frames: int, rate: int, delay: int):
     '''
@@ -197,6 +246,7 @@ def generate_frames(path: str, cursor: str, total_frames : int):
     num_digits = int(math.log10(total_frames) + 1)
     start = 1
     end = len(colors) + 2
+    proc_str = procedure_str(cursor)
 
     template = f"{animated_path()}/{CURSORS[cursor]}"
     overflow = 0
@@ -228,6 +278,7 @@ def generate_frames(path: str, cursor: str, total_frames : int):
     begin_statements.extend([f"select-by-id:layer{overflow}", f"select-by-id:hourglass{overflow}", "delete"])
 
     for i in range(0, total_frames):
+        print_progress(Formats.clear_line() + proc_str, f"{i + 1}/{total_frames}")
         debug(f"\t\tGenerating frame {str(i).zfill(num_digits)}")
         statements = deepcopy(begin_statements)
         t_amount = i/total_frames * hypotenuse
@@ -306,6 +357,7 @@ def generate_frames_mono(path: str, cursor: str, total_frames: int):
     start = 1
     k_start = start + 1
     end = 8
+    proc_str = procedure_str(cursor)
 
     template = f"{animated_path()}/{MONO_CURSORS[cursor]}"
 
@@ -339,6 +391,7 @@ def generate_frames_mono(path: str, cursor: str, total_frames: int):
     mono_hypotenuse = hypotenuse * (2/7)
 
     for i in range(0, total_frames):
+        print_progress(Formats.clear_line() + proc_str, f"{i + 1}/{total_frames}")
         debug(f"\t\tGenerating frame {str(i).zfill(num_digits)}")
         statements = deepcopy(begin_statements)
         t_amount = i/total_frames * mono_hypotenuse
@@ -449,6 +502,7 @@ def generate_cursor(path: str, cursor: str, total_frames: int, rate: int, compos
     else:
         generate_frames(path, cursor, total_frames)
 
+    print_progress(Formats.clear_line() + procedure_str(cursor), "Writing Metadata")
     debug("\tWriting to metadata file")
     delay: int = math.floor(1000 / rate)
     match(compositor):
@@ -458,9 +512,14 @@ def generate_cursor(path: str, cursor: str, total_frames: int, rate: int, compos
             create_kwin_metadata(path, cursor, total_frames, rate, delay)
         case _:
             pass
+
+    print_progress(Formats.clear_line() + procedure_str(cursor), "Optimizing")
     debug("\tOptimizing SVG files")
-    
     optimize_frames(path, cursor, total_frames)
+    
+    print_progress(Formats.clear_line() + procedure_str(cursor), "Done")
+    if (logger.getEffectiveLevel() != DEBUG):
+        print()
 
 def main():
     '''
@@ -478,7 +537,7 @@ def main():
         case True, True:
             db["theme"] = ThemeColor.MONO_BLACK
 
-    info("Frames to generate:", total_frames)
+    info(f"Frames to generate: {total_frames}")
 
     if args.cursor:
         if args.cursor in CURSORS:
@@ -523,6 +582,7 @@ if __name__ == "__main__":
 
     main()
 else:
+    is_module = True
     # Properly link the logger to the main build script. The main build script should be the only script calling this one.
     logger = getLogger("build_main")
 
