@@ -853,7 +853,7 @@ def hourglass_cursors(theme_dir: str, compositor: Compositor):
         cursor: CursorDesign = db["cursors"][name]
         assert("total_frames" in cursor)
         assert("animation_speed" in cursor)
-        print(f"\t\tGenerating {name}")
+        print_procedure(f"        {Formats.branch(1)} Generating {name}")
         os.makedirs(f"{path}/{name}", exist_ok=True)
         hourglasses.generate_cursor(path, name, cursor["total_frames"], cursor["animation_speed"], compositor, (db["theme"] == ThemeColor.MONO) or (db["theme"] == ThemeColor.MONO_BLACK))
 
@@ -1273,7 +1273,7 @@ def main():
     procedure_cnt += 1
 
     print_procedure(f"{procedure_cnt}. Generating animated cursors")
-    print_procedure("\tHourglass cursors")
+    print_procedure(f"   {Formats.branch(1)} Hourglass cursors")
     hourglass_cursors(theme_dir, comp)
     procedure_cnt += 1
 

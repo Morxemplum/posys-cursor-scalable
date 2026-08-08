@@ -60,6 +60,10 @@ class Formats:
     @staticmethod
     def clear_line() -> str:
         return "\x1b[2K\r"
+    
+    @staticmethod
+    def branch(length : int) -> str:
+        return "└───" + "────" * (length - 1)
 
 class CFormatter(logging.Formatter):
     FORMAT_CODES: Final[dict[int, str]] = {
