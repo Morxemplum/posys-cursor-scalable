@@ -1,6 +1,6 @@
 import enum
 import logging
-from typing import Final
+from typing import Final, override
 
 class TextFormat(enum.IntEnum):
     BOLD = 1
@@ -60,19 +60,39 @@ class Formats:
     @staticmethod
     def clear_line() -> str:
         return "\x1b[2K\r"
-    
-    @staticmethod
-    def get_log_color(level: int) -> str:
-        match(level):
-            case logging.DEBUG:
-                return Formats.rich_txt(TextFormat.BOLD, Color8.MAGENTA)
-            case logging.INFO:
-                return Formats.rich_txt(Color8.DEFAULT_C)
-            case logging.WARNING:
-                return Formats.rich_txt(TextFormat.BOLD, Color8.YELLOW)
-            case logging.ERROR:
-                return Formats.rich_txt(TextFormat.BOLD, Color8.RED)
-            case logging.CRITICAL:
-                return Formats.rich_txt(Formats.background_8(Color8.RED), TextFormat.BOLD, Color8.WHITE)
-            case _:
-                return ""
+
+class CFormatter(logging.Formatter):
+    FORMAT_CODES: Final[dict[int, str]] = {
+        logging.DEBUG: Formats.rich_txt(TextFormat.BOLD, Color8.MAGENTA),
+        logging.INFO: Formats.rich_txt(TextFormat.BOLD, Color8.DEFAULT_C),
+        logging.WARNING: Formats.rich_txt(TextFormat.BOLD, Color8.YELLOW),
+        logging.ERROR: Formats.rich_txt(TextFormat.BOLD, Color8.RED),
+        logging.CRITICAL: Formats.rich_txt(Formats.background_8(Color8.RED), TextFormat.BOLD, Color8.WHITE)
+    }
+
+    @override
+    def __init__(self, datetime: bool = False) -> None:
+        super().__init__()
+        self.datetime: bool = datetime
+
+    @override
+    def format(self, record: logging.LogRecord):
+        log_header: str = "%(asctime)s [%(levelname)s]" if self.datetime else "[%(levelname)s]"
+        level = record.levelno
+        fmt: str
+        if (level != logging.CRITICAL):
+            fmt = f"{self.FORMAT_CODES.get(level, "")}{log_header}{Formats.RESET} %(message)s"
+        else:
+            # Critical error messages should format the entire message, not just the header
+            fmt = f"{self.FORMAT_CODES.get(level, "")}{log_header} %(message)s{Formats.RESET}"
+        formatter = logging.Formatter(fmt)
+        return formatter.format(record)
+
+def init_logger(level: int, logger_name: str) -> logging.Logger:
+    handler = logging.StreamHandler()
+    handler.setFormatter(CFormatter(level == logging.DEBUG))
+    logger = logging.getLogger(logger_name)
+    logger.addHandler(handler)
+    logger.setLevel(level)
+
+    return logger

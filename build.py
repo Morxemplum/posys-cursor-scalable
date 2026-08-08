@@ -1,6 +1,6 @@
 import argparse
 import enum
-from logging import basicConfig, debug, INFO, DEBUG
+from logging import INFO, DEBUG
 from pathlib import Path
 import json
 import math
@@ -11,7 +11,7 @@ import subprocess
 
 import src.animated.hourglasses as hourglasses
 from src.cursors_data import CursorManifest, KWinCursor, Compositor, CursorDesign, ThemeColor, ThemePalette, get_theme_palette, db
-from src.format import Color8, Formats, TextFormat
+from src.format import Color8, Formats, TextFormat, init_logger
 
 log_level = INFO
 # If true, the program will continue running even if errors were produced by 
@@ -101,9 +101,9 @@ def confirmation_prompt(prompt: str, default: ConfirmationDefault = Confirmation
                         case ConfirmationDefault.NO:
                             return False
                         case _:
-                            print("\nThis prompt requires an answer!")
+                            error("\nThis prompt requires an answer!")
                 else:
-                    print("\nInvalid answer!")
+                    error("\nInvalid answer!")
 
 def select_prompt(prompt: str, option_labels: list[str], default: int | None = None) -> int:
     '''
@@ -133,14 +133,14 @@ def select_prompt(prompt: str, option_labels: list[str], default: int | None = N
             if default:
                 return default
             else:
-                print("An answer must be provided")
+                error("An answer must be provided")
                 continue
         if not answer.isnumeric():
-            print(f"Insufficient answer \"{answer}\" (Answer must be numeric)")
+            error(f"Insufficient answer \"{answer}\" (Answer must be numeric)")
             continue
         selection: int = int(answer)
         if selection <= 0 or selection > len(option_labels):
-            print(f"Insufficient answer \"{selection}\" (Out of range)")
+            error(f"Insufficient answer \"{selection}\" (Out of range)")
             continue
         return selection
 
@@ -182,14 +182,14 @@ def multiselect_prompt(prompt: str, option_labels: list[str]) -> set[int]:
             if item.isnumeric():
                 option: int = int(item)
                 if option > len(option_labels) or option <= 0:
-                    print(f"Insufficient answer \"{option}\" (Out of range)")
+                    error(f"Insufficient answer \"{option}\" (Out of range)")
                     errors += 1
                 else:
                     options.add(option)
                 continue
             
             if isinstance(re.search("[a-zA-Z]", item), re.Match):
-                print(f"Insufficient answer \"{item}\" (Contains letters)")
+                error(f"Insufficient answer \"{item}\" (Contains letters)")
                 errors += 1
                 continue
 
@@ -198,14 +198,14 @@ def multiselect_prompt(prompt: str, option_labels: list[str]) -> set[int]:
                 s: int = int(start)
                 e: int = int(end)
                 if s > e:
-                    print(f"Insufficient answer \"{item}\" (Bad range: start > end)")
+                    error(f"Insufficient answer \"{item}\" (Bad range: start > end)")
                     errors += 1
                     continue
                 for i in range(s, e + 1):
                     options.add(i)
                 continue
 
-            print(f"Insufficient option \"{item}\". Please check your formatting and try again.")
+            error(f"Insufficient option \"{item}\". Please check your formatting and try again.")
             errors += 1
         if errors > 0:
             continue
@@ -252,11 +252,11 @@ def bimi_dependency_check():
     try:
         result.check_returncode()
     except subprocess.CalledProcessError:
-        print("An error has occurred while trying to install svgtinyps!")
-        print(result.stderr)
+        error("An error has occurred while trying to install svgtinyps!")
+        error(result.stderr)
         exit(1)
     else:
-        print("svgtinyps has been installed successfully!")
+        info("svgtinyps has been installed successfully!")
         # Mark the newly installed program as runnable
         _ = subprocess.run(["chmod", "a+x", "./svgtinyps"])
 
@@ -696,7 +696,7 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
         compositor (Compositor enum):
             The compositor for which the theme is structured around
     '''
-    error: bool = False
+    err: bool = False
     palette = get_theme_palette(db["theme"])
     # Surely there's a cleaner way to write this?
     has_tone: bool = ("tone_light" in db["manifest"]["tags"]) or \
@@ -762,13 +762,13 @@ def create_plain_svgs(theme_dir: str, compositor: Compositor):
         
         # Inkscape CLI, even if you run into a fatal error, will still return a 0 exit code. We must look at stderr's len to determine failure.
         if len(results.stderr) > 0:
-            error = True
+            err = True
             # Convert the raw string into a formatted string, then print it.
-            print(str(results.stderr).encode("utf-8").decode("unicode_escape"))
+            error(str(results.stderr).encode("utf-8").decode("unicode_escape"))
         count += 1
 
-    if error and not OVERRIDE_PROC_ERRORS:
-        print("One or more errors have occurred while making the Plain SVGs. Can not continue with building until errors have been resolved.")
+    if err and not OVERRIDE_PROC_ERRORS:
+        critical("One or more errors have occurred while making the Plain SVGs. Can not continue with building until errors have been resolved.")
         exit(1)
     if (log_level != DEBUG):
         print()
@@ -788,7 +788,7 @@ def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: b
             Whether BIMI conversion will be done later. If true, the output
             file name will be appended to be considered a temp file.
     '''
-    error: bool = False
+    err: bool = False
     count = 1
     for name, cursor in db["cursors"].items():
         if not cursor["build"]:
@@ -817,10 +817,10 @@ def optimize_plain_svgs(theme_dir: str, compositor: Compositor, bimi_required: b
             "--strip-xml-space", "--enable-id-stripping", "--shorten-ids"],
             capture_output=(log_level != DEBUG))
         if (result.returncode != 0):
-            error = True
+            err = True
         count += 1
-    if error and not OVERRIDE_PROC_ERRORS:
-        print("One or more errors have occurred while optimizing the Plain SVGs. Can not continue with building until errors have been resolved.")
+    if err and not OVERRIDE_PROC_ERRORS:
+        critical("One or more errors have occurred while optimizing the Plain SVGs. Can not continue with building until errors have been resolved.")
         exit(1)
     if (log_level != DEBUG):
         print()
@@ -871,7 +871,7 @@ def convert_to_qt(theme_dir: str):
         theme_dir (str):
             The file path to the folder that will be holding our cursor theme
     '''
-    error: bool = False
+    err: bool = False
     count = 1
     for name, cursor in db["cursors"].items():
         if (not cursor["build"] and not is_animated(cursor)) or cursor.get("skip_bimi", False):
@@ -881,7 +881,7 @@ def convert_to_qt(theme_dir: str):
         fin_name: str = cursor.get("out_file", name)
         dir = f"{theme_dir}/cursors_scalable/{fin_name}"
 
-        if (log_level != DEBUG):
+        if (log_level != DEBUG and not err):
             print_procedure(Formats.clear_line() + 
             f"{procedure_cnt}. Making SVGs Qt compatible.", count, num_cursors + NUM_ANIMATED_CURSORS, False)
 
@@ -892,7 +892,9 @@ def convert_to_qt(theme_dir: str):
             debug(f"Converting SVG: {optimized_svg}")
             result = subprocess.run(["./svgtinyps", "convert", f"{dir}/{optimized_svg}", f"{dir}/{output_file}", f"--title=\"{db['manifest']['name']}\""])
             if (result.returncode != 0):
-                error = True
+                err = True
+                print()
+                error(f"Failed to convert static cursor {fin_name}")
         else:
             file = f"{fin_name}.svg"
             staging_file = f"{fin_name}-c.svg"
@@ -900,7 +902,9 @@ def convert_to_qt(theme_dir: str):
             debug(f"Converting Animated SVG: {file}")
             result = subprocess.run(["./svgtinyps", "convert", f"{dir}/{file}", f"{dir}/{staging_file}", f"--title=\"{db['manifest']['name']}\""])
             if (result.returncode != 0):
-                error = True
+                err = True
+                print()
+                error(f"Failed to convert animated cursor {fin_name}")
             # For animated cursors, we'll automatically clean up the artifacts as they are more numerous
             os.remove(f"{dir}/{file}")
             os.rename(f"{dir}/{staging_file}", f"{dir}/{file}")
@@ -916,14 +920,18 @@ def convert_to_qt(theme_dir: str):
                 debug(f"\tConverting frame {fi}")
                 result = subprocess.run(["./svgtinyps", "convert", f"{dir}/{file}", f"{dir}/{staging_file}", f"--title=\"{db['manifest']['name']}\""])
                 if (result.returncode != 0):
-                    error = True
+                    err = True
+                    print()
+                    error(f"Failed to convert animated cursor {fin_name} on frame {i}")
                     break # For animated cursors, don't complete conversion
                 os.remove(f"{dir}/{file}")
                 os.rename(f"{dir}/{staging_file}", f"{dir}/{file}")
+            if err:
+                break
         count += 1
 
-    if error and not OVERRIDE_PROC_ERRORS:
-        print("One or more errors have occurred while converting the optimized SVGs. Can not continue with building until errors have been resolved.")
+    if err and not OVERRIDE_PROC_ERRORS:
+        critical("Errors have occurred while converting the optimized SVGs. Can not continue with building until errors have been resolved.")
         exit(1)
     if (log_level != DEBUG):
         print()
@@ -983,6 +991,7 @@ def create_alias_sym_links(theme_dir: str):
             sym_link: str = f"{theme_dir}/cursors_scalable/{alias}"
             # Do not recreate the symlink if it already exists, otherwise we will get errors
             if os.path.islink(sym_link):
+                debug(f"Alias \"{alias}\" for \"{fin_name}\" already exists. Skipping.")
                 continue
             debug(f"Creating alias \"{alias}\" for \"{fin_name}\"")
             _ = subprocess.run(["ln", "-s", rel_dir, sym_link])
@@ -1077,7 +1086,7 @@ def apply_extras_args():
                     if not mono:
                         extra_colored_help()
                     else:
-                        print("Attempted to apply \"winhelp\" extra while the theme is mono. Ignoring.")
+                        warning("Attempted to apply \"winhelp\" extra while the theme is mono. Ignoring.")
                 case "social":
                     extra_social()
                 case _:
@@ -1087,7 +1096,7 @@ def apply_extras_args():
         if not mono:
             extra_toned_hands()
         else:
-            print("Attempted to apply \"tone\" extra while the theme is mono. Ignoring.")
+            warning("Attempted to apply \"tone\" extra while the theme is mono. Ignoring.")
 
 def apply_extras_prompt(option_labels : list[str], selected: set[int]):
     '''
@@ -1156,9 +1165,9 @@ def install_theme(theme_dir: str, compositor: Compositor):
     
     try:           
         _ = shutil.move(theme_dir, f"{install_dir}/{installed_name}")
-        print("Theme has successfully installed")
+        info("Theme has successfully installed")
     except:
-        print("An error occurred while installing the theme")
+        error("An error occurred while installing the theme")
     
 def main():
     comp : Compositor
@@ -1174,10 +1183,6 @@ def main():
         "This build script and theme are not responsible for any damage done to your system or hardware." +
         Formats.RESET)
     print()
-    if (args.debug):
-        global log_level
-        log_level = DEBUG
-        basicConfig(level=log_level, format="\x1b[1;35m%(asctime)s [%(levelname)s]\x1b[0m %(message)s")
     debug("If you're seeing this, debug is enabled.")
 
     folder_name: str = ""
@@ -1314,4 +1319,16 @@ if __name__ == "__main__":
     _ = parser.add_argument("--debug", action="store_true",
         help="Enables debug logging and more verbose output, including output from external processes like Inkscape and Scour.")
     args: ArgConsts = parser.parse_args(namespace=ArgConsts())
+
+    if (args.debug):
+        log_level = DEBUG
+    logger = init_logger(log_level, "build_main")
+
+    # Create aliases that will make calling our logging functions easier
+    debug = logger.debug
+    info = logger.info
+    warning = logger.warning
+    error = logger.error
+    critical = logger.critical
+
     main()

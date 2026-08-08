@@ -6,7 +6,7 @@ import subprocess
 import sys
 from copy import deepcopy
 from collections import deque
-from logging import debug
+from logging import INFO, DEBUG, getLogger
 from os import remove, rename
 from pathlib import Path
 
@@ -15,6 +15,7 @@ repo_dir = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(repo_dir))
 # We must maintain the same namespace as the main build script, otherwise the Python interpreter will bug out on certain logic.
 from src.cursors_data import KWinCursor, KWinAnimatedCursor, Compositor, ThemeColor, db
+from src.format import init_logger
 
 REVERSE = True # Posy's animation goes in the opposite direction of the gradient
 subprocess_output = False
@@ -40,6 +41,7 @@ class ArgConsts(argparse.Namespace):
     mono: bool # pyright: ignore[reportUninitializedInstanceVariable]
     black: bool # pyright: ignore[reportUninitializedInstanceVariable]
     cursor: str | None # pyright: ignore[reportUninitializedInstanceVariable]
+    debug: bool # pyright: ignore[reportUninitializedInstanceVariable]
 
 def animated_path() -> str:
     '''
@@ -476,27 +478,54 @@ def main():
         case True, True:
             db["theme"] = ThemeColor.MONO_BLACK
 
-    print("Frames to generate:", total_frames)
+    info("Frames to generate:", total_frames)
 
     if args.cursor:
         if args.cursor in CURSORS:
-            print(f"Generating selected cursor")
+            info(f"Generating selected cursor")
             generate_cursor(args.output, args.cursor, total_frames, args.frame_rate, Compositor.from_str(args.compositor), getattr(args, "mono", False))
         else:
-            print("ERROR: Invalid cursor name. Accepted values are: wait, progress.")
+            error("Invalid cursor name. Accepted values are: wait, progress.")
     else: 
         for cursor in CURSORS.keys():
-            print(f"Generating {cursor}")
+            info(f"Generating {cursor}")
             generate_cursor(args.output, cursor, total_frames, args.frame_rate, Compositor.from_str(args.compositor), getattr(args, "mono", False))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Individual generation script for the hourglass animated cursors (wait & process)")
-    _ = parser.add_argument("duration", type=int, help="How long the animation of the cursor will last (in milliseconds)")
-    _ = parser.add_argument("frame_rate", type=int, help="How many frames will be made per second of animation. Delays will be calculated from this value.")
-    _ = parser.add_argument("compositor", type=str, help="The Wayland compositor that the cursors will be made for (hyprland, kwin)")
-    _ = parser.add_argument("-o", "--output", type=str, default=".", help="Specify a custom path to output the build artifacts to. Otherwise, it'll build in the same directory.")
-    _ = parser.add_argument("--mono", action="store_true", default=False, help="If used, the monotone variants will be generated instead of the colorfuls")
-    _ = parser.add_argument("--black", action="store_true", default=False, help="If used, the progress cursor head will be colored according to the palette of the Black theme")
-    _ = parser.add_argument("--cursor", type=str, help="Picks a specific hourglass cursor to generate. If not present, all cursors will be generated.")
+    _ = parser.add_argument("duration", type=int, 
+        help="How long the animation of the cursor will last (in milliseconds)")
+    _ = parser.add_argument("frame_rate", type=int, 
+        help="How many frames will be made per second of animation. Delays will be calculated from this value.")
+    _ = parser.add_argument("compositor", type=str, 
+        help="The Wayland compositor that the cursors will be made for (hyprland, kwin)")
+    _ = parser.add_argument("-o", "--output", type=str, default=".", 
+        help="Specify a custom path to output the build artifacts to. Otherwise, it'll build in the same directory.")
+    _ = parser.add_argument("--mono", action="store_true", default=False, 
+        help="If used, the monotone variants will be generated instead of the colorfuls")
+    _ = parser.add_argument("--black", action="store_true", default=False, 
+        help="If used, the progress cursor head will be colored according to the palette of the Black theme")
+    _ = parser.add_argument("--cursor", type=str, 
+        help="Picks a specific hourglass cursor to generate. If not present, all cursors will be generated.")
+    _ = parser.add_argument("--debug", action="store_true",
+        help="Enables debug logging and more verbose output, including output from external processes like Inkscape and Scour.")
     args: ArgConsts = parser.parse_args(namespace=ArgConsts())
+
+    log_level = INFO
+    if (args.debug):
+        log_level = DEBUG
+    logger = init_logger(log_level, "build_hourglasses")
+
+    # Create aliases that will make calling our logging functions easier
+    debug = logger.debug
+    info = logger.info
+    error = logger.error
+
     main()
+else:
+    # Properly link the logger to the main build script. The main build script should be the only script calling this one.
+    logger = getLogger("build_main")
+
+    debug = logger.debug
+    info = logger.info
+    error = logger.error
