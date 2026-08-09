@@ -541,6 +541,33 @@ db : CursorCollection = {
             "aliases": ["question_arrow", "left_ptr_help", "whats_this", "dnd-ask", "5c6cd98b3f3ebcb1f9c7f1c204630408", "d9ce0ab605698f320427677b458ad60b"]
         },
 
+        "grab-alias": {
+            "build": False,
+            "extra": True,
+            "out_file": "alias",
+            "hotspot": (0.392, 0.375),
+            "size": (32, 32),
+            "aliases": ["dnd-alias", "DnD_alias", "link", "640fb0e74195791501fd1ed57b41487f", "a2a266d0498c3104214a47bd64ab0fc8", "3085a0e285430894940527032f8b26df"]
+        },
+
+        "grab-copy": {
+            "build": False,
+            "extra": True,
+            "out_file": "copy",
+            "hotspot": (0.392, 0.375),
+            "size": (32, 32),
+            "aliases": ["dnd-copy", "DnD_copy", "1081e37283d90000800003c07f3ef6bf", "6407b0e94181790501fd1e167b474872", "b66166c04f8c3109214a4fbd64a50fc8"]
+        },
+
+        "grab-nodrop": {
+            "build": False,
+            "extra": True,
+            "out_file": "nodrop",
+            "hotspot": (0.392, 0.375),
+            "size": (32, 32),
+            "aliases": ["dnd-no-drop", "dnd-nodrop", "DnD_nodrop", "no-drop"]
+        },
+
         ### EXTRA CURSORS
 
         "social-person": {

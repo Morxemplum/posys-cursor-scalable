@@ -1024,6 +1024,20 @@ def extra_refreshed_designs():
     cursors["beam-v2"]["build"] = True
     cursors["precision-v2"]["build"] = True
 
+def extra_grab_dnd():
+    '''
+    Applies the grabbing Drag'n'Drop extra
+    '''
+    cursors = db["cursors"]
+    db["manifest"]["tags"].append("grab-dnd")
+    cursors["alias"]["build"] = False
+    cursors["copy"]["build"] = False
+    cursors["nodrop"]["build"] = False
+
+    cursors["grab-alias"]["build"] = True
+    cursors["grab-copy"]["build"] = True
+    cursors["grab-nodrop"]["build"] = True
+
 def extra_xerox():
     '''
     Applies the early Xerox cursor design extra
@@ -1094,6 +1108,8 @@ def apply_extras_args():
             match(extra):
                 case "v2":
                     extra_refreshed_designs()
+                case "grab-dnd":
+                    extra_grab_dnd()
                 case "xerox":
                     extra_xerox()
                 case "wrong-finger":
@@ -1133,6 +1149,8 @@ def apply_extras_prompt(option_labels : list[str], selected: set[int]):
         match(option):
             case "Posy's Refreshed Cursors (V2 Designs)":
                 extra_refreshed_designs()
+            case "Grabbing Drag'n'Drop":
+                extra_grab_dnd()
             case "Early Xerox default cursor":
                 extra_xerox()
             case "Wrong finger click":
@@ -1239,7 +1257,7 @@ def main():
         theme_opt = select_prompt("Choose which theme you would like for your cursors (or just press Enter for \"White\")", ["White", "Black", "Mono", "Mono Black"], 1)
         db["theme"] = ThemeColor(theme_opt - 1)
     
-    available_extras: list[str] = ["Posy's Refreshed Cursors (V2 Designs)", "Early Xerox default cursor", "Wrong finger click", "Winhelp (Colored Help)", "Social cursors (person & pin)", "Skin toned hands"]
+    available_extras: list[str] = ["Posy's Refreshed Cursors (V2 Designs)", "Grabbing Drag'n'Drop", "Early Xerox default cursor", "Wrong finger click", "Winhelp (Colored Help)", "Social cursors (person & pin)", "Skin toned hands"]
     if (db["theme"] == ThemeColor.MONO or db["theme"] == ThemeColor.MONO_BLACK):
         # Mono themes change fundamental properties of the hourglass cursors, so we must apply those changes
         db["cursors"]["wait"]["skip_bimi"] = True
@@ -1325,7 +1343,7 @@ if __name__ == "__main__":
         help="The compositor that the metadata and manifest will be written in, which will use the theme.")
     _ = parser.add_argument("-t", "--theme", type=str, choices=["white", "black", "mono", "mono-black"], 
         help="The color/theme that will be applied to the cursor, affecting overall appearance.")
-    _ = parser.add_argument("-e", "--extras", nargs="+", type=str, choices=["v2", "xerox", "wrong-finger", "winhelp", "social"],
+    _ = parser.add_argument("-e", "--extras", nargs="+", type=str, choices=["v2", "grab-dnd", "xerox", "wrong-finger", "winhelp", "social"],
         help="Modifies the theme built by swapping or adding different cursor variants. Some extras are not available on mono themes and will be ignored.")
     _ = parser.add_argument("--tone", type=str, choices=["light", "medium", "dark"],
         help="Modifies all hand cursors by applying a pigmented color to reflect a skin tone. This flag is ignored on mono themes.")
