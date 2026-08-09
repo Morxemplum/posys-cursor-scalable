@@ -523,6 +523,16 @@ db : CursorCollection = {
             "aliases": ["text", "ibeam", "xterm"]
         },
 
+        "hbeam-v2": {
+            "build": False,
+            "extra": True,
+            "skip_theming": True,
+            "out_file": "vertical-text",
+            "hotspot": (0.5, 0.5),
+            "size": (24, 24),
+            "aliases": ["vertical_text", "hbeam"]
+        },
+
         "precision-v2": {
             "build": False,
             "extra": True,

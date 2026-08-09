@@ -1019,9 +1019,11 @@ def extra_refreshed_designs():
     cursors = db["cursors"]
     db["manifest"]["tags"].append("v2")
     cursors["beam"]["build"] = False
+    cursors["vertical-text"]["build"] = False
     cursors["precision"]["build"] = False
 
     cursors["beam-v2"]["build"] = True
+    cursors["hbeam-v2"]["build"] = True
     cursors["precision-v2"]["build"] = True
 
 def extra_grab_dnd():
