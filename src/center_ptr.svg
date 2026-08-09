@@ -14,16 +14,7 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
-     id="defs1">
-    <clipPath
-       clipPathUnits="userSpaceOnUse"
-       id="clipPath2">
-      <path
-         d="M 0,324 H 524 V 0 H 0 Z"
-         transform="translate(-139.76241,-187.9464)"
-         id="path2" />
-    </clipPath>
-  </defs>
+     id="defs1" />
   <sodipodi:namedview
      id="namedview1"
      pagecolor="#646464"
@@ -33,15 +24,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="11.313708"
-     inkscape:cx="8.6620585"
-     inkscape:cy="19.754797"
+     inkscape:zoom="22.627417"
+     inkscape:cx="10.960155"
+     inkscape:cy="11.159029"
      inkscape:window-width="2560"
-     inkscape:window-height="1364"
+     inkscape:window-height="1412"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="GROUP-e7bdd0170e906698"
+     inkscape:current-layer="svg1"
      showguides="true">
     <inkscape:page
        x="0"
@@ -53,17 +44,10 @@
        margin="112.708 146.66667 44.262665 157.33333"
        bleed="0" />
   </sodipodi:namedview>
-  <g
-     inkscape:groupmode="layer"
-     id="GROUP-e7bdd0170e906698"
-     inkscape:label="Default"
-     style="display:inline">
-    <path
-       id="19d258f978a6a7f9.p.s"
-       d="m 0,0 c -2.63,6.346 -4.165,10.054 -4.165,10.054 l 12.403,0.005 -29,29.004 0.002,-41.022 8.774,8.773 4.165,-10.054 C -6.125,-7.292 1.647,-4.023 0,0"
-       style="display:inline;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-       transform="matrix(0.43562239,0.18044109,0.18046246,-0.43567586,13.994987,21.997555)"
-       clip-path="url(#clipPath2)"
-       inkscape:label="path1" />
-  </g>
+  <path
+     id="4c1b9bb6b7852309.p.s"
+     d="m 13.947931,21.976817 c -5.5e-4,-3.224514 -1.24e-4,-5.108304 -1.24e-4,-5.108304 l 5.379289,2.22574 L 11.961537,1.3068285 4.5937204,19.09739 l 5.3806018,-2.2286 1.17e-4,5.108322 c 0.0076,2.061893 3.9650268,2.040255 3.9734678,-2.59e-4"
+     style="display:inline;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+     inkscape:label="cursor"
+     sodipodi:nodetypes="cccccccc" />
 </svg>
